@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ambil Antrian — UPTD Puskesmas Cangadi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --accent:      #0057d8;
+  --accent-2:    #003fa3;
+  --accent-bg:   #e8f0fe;
+  --accent-txt:  #003fa3;
+  --accent-glow: rgba(0,87,216,.12);
+  --ink-1: #0d1b2a; --ink-2: #3a5068; --ink-3: #8aa0b8;
+  --border: #e1e8f0; --border-2: #c8d6e5;
+  --surface: #ffffff; --surface-2: #f7f9fc;
+  --bg: #eef2f8;
+  --success: #059669; --success-bg: #ecfdf5; --success-txt: #064e3b;
+  --warn: #d97706; --warn-bg: #fffbeb; --warn-txt: #78350f;
+  --font-display: 'Syne', sans-serif;
+  --font-body:    'DM Sans', sans-serif;
+  --font-mono:    'DM Mono', monospace;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.06);
+  --shadow-md: 0 4px 16px rgba(0,0,0,.08);
+  --shadow-lg: 0 12px 32px rgba(0,0,0,.12);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  overflow: hidden; /* kiosk tidak bisa di-scroll */
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--ink-1);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── HEADER (putih, kompak) ── */
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 1.5rem;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+  z-index: 10;
+}
+.header-brand { display: flex; align-items: center; gap: 10px; }
+.header-logo {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden; flex-shrink: 0;
+}
+.header-logo img { width: 100%; height: 100%; object-fit: cover; }
+.header-name { font-size: 14px; font-weight: 600; color: var(--ink-1); line-height: 1.2; }
+.header-sub  { font-size: 11px; color: var(--ink-3); margin-top: 1px; }
+.header-clock {
+  font-family: var(--font-mono);
+  font-size: 15px; font-weight: 500;
+  color: var(--ink-1); text-align: right;
+}
+.header-date { font-size: 10px; color: var(--ink-3); text-align: right; margin-top: 1px; }
+
+/* ── CALLING BANNER ── */
+.calling-banner {
+  background: var(--surface);
+  border-bottom: 3px solid var(--accent);
+  padding: .625rem 1.5rem;
+  display: none;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+}
+.calling-banner.show { display: flex; }
+.calling-pulse {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--accent); flex-shrink: 0;
+  animation: callingPulse 1.4s ease-in-out infinite;
+}
+@keyframes callingPulse {
+  0%,100% { transform:scale(1); box-shadow:0 0 0 0 rgba(0,87,216,.4); }
+  50%      { transform:scale(1.1); box-shadow:0 0 0 5px rgba(0,87,216,0); }
+}
+.calling-label { font-size:10px; font-weight:700; color:var(--ink-3); text-transform:uppercase; letter-spacing:.8px; margin-bottom:1px; }
+.calling-num   { font-family:var(--font-mono); font-size:18px; font-weight:500; color:var(--accent); line-height:1; }
+.calling-name  { font-size:11px; color:var(--ink-2); }
+.calling-poli  { margin-left:auto; font-size:11px; font-weight:600; color:var(--accent-txt); background:var(--accent-bg); padding:3px 9px; border-radius:20px; flex-shrink:0; }
+
+/* ── SCROLLABLE AREA (hanya screen 1 yang bisa scroll jika poli banyak) ── */
+.scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+/* Screen 3 dikunci penuh agar tidak perlu scroll */
+.scroll-area.locked { overflow: hidden; }
+
+/* ── MAIN ── */
+.main {
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 1.25rem 1.5rem;
+}
+
+/* ── STEP BAR ── */
+.step-bar {
+  display: flex; align-items: center;
+  background: var(--surface); border-radius: 12px;
+  padding: .625rem 1.25rem; margin-bottom: 1.25rem;
+  border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+}
+.step-item  { display:flex; align-items:center; gap:7px; flex:1; }
+.step-num   { width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; flex-shrink:0; transition:.25s; }
+.step-num.active { background:var(--accent); color:#fff; box-shadow:0 0 0 3px var(--accent-glow); }
+.step-num.done   { background:var(--success); color:#fff; }
+.step-num.idle   { background:var(--surface-2); color:var(--ink-3); border:1px solid var(--border); }
+.step-label { font-size:11px; font-weight:500; color:var(--ink-2); }
+.step-sep   { width:24px; height:1px; background:var(--border); flex-shrink:0; margin:0 3px; }
+
+/* ── SCREENS ── */
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* ── SCREEN 1: POLI ── */
+.screen-title { font-family:var(--font-display); font-size:20px; font-weight:700; color:var(--ink-1); margin-bottom:3px; letter-spacing:-.3px; }
+.screen-sub   { font-size:13px; color:var(--ink-2); margin-bottom:1.25rem; }
+.poli-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(155px,1fr)); gap:10px; }
+.poli-card {
+  background:var(--surface); border:2px solid var(--border); border-radius:14px;
+  padding:1.1rem .875rem; text-align:center; cursor:pointer;
+  transition:.2s; user-select:none; box-shadow:var(--shadow-sm);
+}
+.poli-card:hover  { border-color:var(--accent); background:var(--accent-bg); transform:translateY(-2px); box-shadow:var(--shadow-md); }
+.poli-card:active { transform:translateY(0); box-shadow:var(--shadow-sm); }
+.poli-icon-wrap { width:46px; height:46px; border-radius:12px; background:var(--accent-bg); border:1px solid rgba(0,87,216,.1); display:flex; align-items:center; justify-content:center; margin:0 auto 8px; transition:.2s; }
+.poli-card:hover .poli-icon-wrap { background:rgba(0,87,216,.15); }
+.poli-card-name  { font-size:13px; font-weight:600; color:var(--ink-1); line-height:1.3; margin-bottom:4px; }
+.poli-card-count { display:inline-flex; align-items:center; gap:3px; font-size:10px; font-weight:600; color:var(--warn-txt); background:var(--warn-bg); padding:2px 7px; border-radius:20px; }
+.poli-card-count.zero { color:var(--ink-3); background:var(--surface-2); }
+
+/* ── SCREEN 2: FORM ── */
+.form-wrap { max-width:460px; }
+.poli-selected-chip { display:inline-flex; align-items:center; gap:7px; padding:6px 12px; border-radius:9px; background:var(--accent-bg); border:1px solid rgba(0,87,216,.15); margin-bottom:1.25rem; }
+.poli-selected-chip-dot  { width:7px; height:7px; border-radius:50%; background:var(--accent); flex-shrink:0; }
+.poli-selected-chip-name { font-size:13px; font-weight:600; color:var(--accent-txt); }
+.field { display:flex; flex-direction:column; gap:4px; margin-bottom:12px; }
+.field label { font-size:12px; font-weight:600; color:var(--ink-2); }
+.field input {
+  height:44px; padding:0 14px;
+  border:1.5px solid var(--border-2); border-radius:11px;
+  font-family:var(--font-body); font-size:14px; color:var(--ink-1);
+  background:var(--surface); outline:none; transition:.15s;
+}
+.field input:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-glow); }
+.field input::placeholder { color:var(--ink-3); }
+.field-hint { font-size:11px; color:var(--ink-3); margin-top:2px; line-height:1.4; }
+.btn-row { display:flex; gap:8px; margin-top:6px; }
+.btn { height:44px; padding:0 20px; border-radius:11px; border:none; font-family:var(--font-body); font-size:14px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:7px; transition:.15s; }
+.btn-primary { background:var(--accent); color:#fff; flex:1; box-shadow:0 2px 8px rgba(0,87,216,.25); }
+.btn-primary:hover    { background:var(--accent-2); transform:translateY(-1px); }
+.btn-primary:active   { transform:translateY(0); }
+.btn-primary:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+.btn-back { background:var(--surface); color:var(--ink-2); border:1.5px solid var(--border-2); }
+.btn-back:hover { background:var(--surface-2); }
+
+/* ── SCREEN 3: TIKET (layout compact, no scroll) ── */
+.ticket-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .875rem;
+}
+
+.ticket {
+  background: var(--surface);
+  border-radius: 16px;
+  width: 100%; max-width: 440px;
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border);
+}
+
+/* header tiket — kompak */
+.ticket-head {
+  background: var(--accent);
+  padding: .875rem 1.25rem;
+  color: #fff; text-align: center;
+}
+.ticket-head-label { font-size:9px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; opacity:.7; margin-bottom:2px; display:block; }
+.ticket-num { font-family:var(--font-mono); font-size:58px; font-weight:500; line-height:1; letter-spacing:2px; }
+.ticket-head-poli { display:inline-block; margin-top:4px; padding:3px 12px; border-radius:20px; background:rgba(255,255,255,.2); font-size:12px; font-weight:600; }
+
+/* body tiket — kompak */
+.ticket-body { padding:.875rem 1.25rem; }
+.ticket-patient     { font-size:15px; font-weight:600; color:var(--ink-1); margin-bottom:2px; }
+.ticket-patient-sub { font-size:11px; color:var(--ink-3); margin-bottom:.75rem; }
+.ticket-grid { display:grid; grid-template-columns:1fr 1fr; gap:7px; margin-bottom:.75rem; }
+.ticket-info-item  { background:var(--surface-2); border:1px solid var(--border); border-radius:8px; padding:.5rem .75rem; }
+.ticket-info-label { font-size:9px; font-weight:700; color:var(--ink-3); text-transform:uppercase; letter-spacing:.7px; margin-bottom:2px; }
+.ticket-info-val   { font-size:13px; font-weight:600; color:var(--ink-1); font-family:var(--font-mono); }
+
+/* estimasi tunggu kompak */
+.ticket-wait-bar { background:var(--success-bg); border:1px solid rgba(5,150,105,.2); border-radius:10px; padding:.625rem .875rem; display:flex; align-items:center; gap:10px; }
+.ticket-wait-icon { width:32px; height:32px; background:var(--success); border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.ticket-wait-label { font-size:10px; font-weight:600; color:var(--success); text-transform:uppercase; letter-spacing:.5px; margin-bottom:1px; }
+.ticket-wait-val   { font-size:15px; font-weight:700; color:var(--ink-1); }
+
+/* footer tiket */
+.ticket-foot { border-top:1px dashed var(--border); padding:.625rem 1.25rem; text-align:center; }
+.ticket-foot-txt { font-size:10px; color:var(--ink-3); line-height:1.5; }
+
+/* ── TOMBOL AKSI ── */
+.ticket-actions { display:flex; gap:8px; width:100%; max-width:440px; }
+.btn-print {
+  flex:1; height:46px;
+  background:var(--accent); color:#fff; border:none; border-radius:12px;
+  font-family:var(--font-body); font-size:14px; font-weight:600;
+  cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;
+  transition:.15s; box-shadow:0 3px 12px rgba(0,87,216,.3);
+}
+.btn-print:hover    { background:var(--accent-2); transform:translateY(-1px); }
+.btn-print:active   { transform:translateY(0); }
+.btn-print:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+.btn-reset-soft {
+  height:46px; padding:0 16px;
+  background:var(--surface); color:var(--ink-2);
+  border:1.5px solid var(--border-2); border-radius:12px;
+  font-family:var(--font-body); font-size:13px; font-weight:600;
+  cursor:pointer; display:flex; align-items:center; gap:7px; transition:.15s;
+}
+.btn-reset-soft:hover { background:var(--surface-2); color:var(--ink-1); }
+
+/* ══════════════════════════════════════════════════
+   PRINT STYLES
+   Teknik: sembunyikan semua dengan visibility:hidden
+   (BUKAN display:none) agar browser tetap mau print.
+   #printArea tetap di DOM tapi di luar layar.
+══════════════════════════════════════════════════ */
+/* Sembunyikan printArea dari layar tanpa display:none */
+#printArea {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  width: 80mm;
+}
+
+@media print {
+  @page { size: 80mm auto; margin: 0; }
+
+  /* sembunyikan semua kecuali printArea */
+  body > *:not(#printArea) { display: none !important; }
+
+  #printArea {
+    position: static !important;
+    left: 0 !important;
+    width: 80mm;
+    padding: 0;
+    font-family: 'DM Sans', sans-serif;
+    display: block !important;
+  }
+
+  /* ── Header cetak ── */
+  .p-head {
+    background: #000 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    color: #fff !important;
+    padding: 5mm 5mm 4mm;
+    text-align: center;
+  }
+  .p-head-label {
+    font-size: 7pt; letter-spacing: 1.5px;
+    text-transform: uppercase; opacity: .75;
+    margin-bottom: 1.5mm; display: block;
+  }
+  .p-num {
+    font-size: 42pt; font-weight: 700;
+    line-height: 1; letter-spacing: 2px;
+    display: block; font-family: 'DM Mono', monospace;
+  }
+  .p-poli-chip {
+    display: inline-block; margin-top: 1.5mm;
+    padding: 1.5mm 4mm;
+    border: 1px solid rgba(255,255,255,.5);
+    border-radius: 20px; font-size: 8.5pt; font-weight: 700;
+  }
+
+  /* ── Body cetak ── */
+  .p-body { padding: 4mm 5mm; }
+  .p-patient { font-size: 11pt; font-weight: 700; margin-bottom: .5mm; }
+  .p-sub     { font-size: 7.5pt; color: #555; margin-bottom: 3mm; }
+  .p-divider { border: none; border-top: 1px dashed #bbb; margin: 3mm 0; }
+
+  .p-row       { display: flex; justify-content: space-between; font-size: 8pt; margin-bottom: 1.5mm; }
+  .p-row-label { color: #555; }
+  .p-row-val   { font-weight: 600; font-family: 'DM Mono', monospace; }
+
+  /* ── Estimasi tunggu ── */
+  .p-wait-box   { border: 1px solid #bbb; border-radius: 4px; padding: 2.5mm 4mm; margin-top: 3mm; }
+  .p-wait-label { font-size: 7pt; color: #555; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 1mm; display: block; }
+  .p-wait-val   { font-size: 13pt; font-weight: 700; }
+
+  /* ── Footer cetak ── */
+  .p-footer  { border-top: 1px dashed #bbb; padding: 3mm 5mm; text-align: center; font-size: 7pt; color: #555; line-height: 1.6; }
+  .p-clinic  { font-size: 8pt; font-weight: 700; color: #000; margin-bottom: 1mm; display: block; }
+}
+
+/* ── RESPONSIVE ── */
+@media(max-width:600px) {
+  .poli-grid        { grid-template-columns: repeat(2,1fr); }
+  .ticket-num       { font-size: 44px; }
+  .ticket-actions   { flex-direction: column; }
+  .main             { padding: 1rem; }
+}
+@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-brand">
+    <div class="header-logo">
+      <img src="/assets/logo_puskesmas.png" alt="Logo"
+        onerror="this.style.display='none'">
+    </div>
+    <div>
+      <div class="header-name">UPTD Puskesmas Cangadi</div>
+      <div class="header-sub">Mesin Antrian — Ambil Nomor</div>
+    </div>
+  </div>
+  <div>
+    <div class="header-clock" id="clock">00:00:00</div>
+    <div class="header-date"  id="headerDate">—</div>
+  </div>
+</header>
+
+<!-- CALLING BANNER -->
+<div class="calling-banner" id="callingBanner">
+  <div class="calling-pulse"></div>
+  <div>
+    <div class="calling-label">Sedang Dipanggil</div>
+    <div class="calling-num"  id="callingNum">—</div>
+    <div class="calling-name" id="callingName">—</div>
+  </div>
+  <div class="calling-poli" id="callingPoli">—</div>
+</div>
+
+<!-- SCROLL AREA -->
+<div class="scroll-area" id="scrollArea">
+<main class="main">
+
+  <!-- STEP BAR -->
+  <div class="step-bar">
+    <div class="step-item">
+      <div class="step-num active" id="s1">1</div>
+      <span class="step-label">Pilih Poli</span>
+    </div>
+    <div class="step-sep"></div>
+    <div class="step-item">
+      <div class="step-num idle" id="s2">2</div>
+      <span class="step-label">Data Pasien</span>
+    </div>
+    <div class="step-sep"></div>
+    <div class="step-item">
+      <div class="step-num idle" id="s3">3</div>
+      <span class="step-label">Nomor Antrian</span>
+    </div>
+  </div>
+
+  <!-- SCREEN 1 -->
+  <div class="screen active" id="screen1">
+    <div class="screen-title">Pilih Poliklinik</div>
+    <div class="screen-sub">Sentuh poliklinik yang ingin Anda kunjungi</div>
+    <div class="poli-grid" id="poliGrid">
+      <div style="color:var(--ink-3);font-size:13px;padding:1rem;grid-column:1/-1">Memuat daftar poli...</div>
+    </div>
+  </div>
+
+  <!-- SCREEN 2 -->
+  <div class="screen" id="screen2">
+    <div class="screen-title">Data Pasien</div>
+    <div class="screen-sub">Masukkan nama Anda (opsional)</div>
+    <div class="form-wrap">
+      <div class="poli-selected-chip">
+        <div class="poli-selected-chip-dot"></div>
+        <span class="poli-selected-chip-name" id="selectedPoliName">—</span>
+      </div>
+      <div class="field">
+        <label>Nama Lengkap</label>
+        <input type="text" id="nameInput"
+               placeholder="Masukkan nama (opsional)"
+               maxlength="80" autocomplete="off">
+        <div class="field-hint">Kosongkan jika tidak ingin mencantumkan nama.</div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-back" onclick="goStep(1)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          Kembali
+        </button>
+        <button class="btn btn-primary" id="btnSubmit" onclick="submitQueue()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
+          Ambil Nomor
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 3 -->
+  <div class="screen" id="screen3">
+    <div class="ticket-screen">
+
+      <div class="ticket" id="ticketCard">
+        <div class="ticket-head">
+          <span class="ticket-head-label">Nomor Antrian Anda</span>
+          <div class="ticket-num" id="ticketNum">—</div>
+          <div class="ticket-head-poli" id="ticketPoli">—</div>
+        </div>
+        <div class="ticket-body">
+          <div class="ticket-patient" id="ticketName">—</div>
+          <div class="ticket-patient-sub">UPTD Puskesmas Cangadi</div>
+          <div class="ticket-grid">
+            <div class="ticket-info-item">
+              <div class="ticket-info-label">Tanggal</div>
+              <div class="ticket-info-val" id="ticketDate">—</div>
+            </div>
+            <div class="ticket-info-item">
+              <div class="ticket-info-label">Jam Daftar</div>
+              <div class="ticket-info-val" id="ticketTime">—</div>
+            </div>
+            <div class="ticket-info-item">
+              <div class="ticket-info-label">Antrian Depan</div>
+              <div class="ticket-info-val" id="ticketAhead">—</div>
+            </div>
+            <div class="ticket-info-item">
+              <div class="ticket-info-label">Est. Tunggu</div>
+              <div class="ticket-info-val" id="ticketWaitVal">—</div>
+            </div>
+          </div>
+          <div class="ticket-wait-bar">
+            <div class="ticket-wait-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>
+            </div>
+            <div>
+              <div class="ticket-wait-label">Perkiraan Tunggu</div>
+              <div class="ticket-wait-val" id="ticketWaitBig">—</div>
+            </div>
+          </div>
+        </div>
+        <div class="ticket-foot">
+          <div class="ticket-foot-txt">Simpan nomor ini · Perhatikan layar display</div>
+        </div>
+      </div>
+
+      <!-- TOMBOL -->
+      <div class="ticket-actions">
+        <button class="btn-print" id="btnPrint" onclick="doPrint()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6 9 6 2 18 2 18 9"/>
+            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+            <rect x="6" y="14" width="12" height="8"/>
+          </svg>
+          Cetak Karcis
+        </button>
+        <button class="btn-reset-soft" onclick="goStep(1)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 12a9 9 0 1 0 4.5-7.8"/><polyline points="3 3 3 9 9 9"/>
+          </svg>
+          Mulai Ulang
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+</main>
+</div><!-- .scroll-area -->
+
+<!-- ══════════════════════════════════════════════════
+     AREA CETAK
+     Disimpan di luar scroll-area, di-offset ke kiri
+     agar tidak terlihat di layar tapi tetap ada di DOM
+     sehingga @media print bisa membacanya.
+══════════════════════════════════════════════════ -->
+<div id="printArea">
+  <div class="p-head">
+    <span class="p-head-label">Nomor Antrian</span>
+    <span class="p-num"       id="pNum">—</span>
+    <div  class="p-poli-chip" id="pPoli">—</div>
+  </div>
+  <div class="p-body">
+    <div class="p-patient" id="pName">—</div>
+    <div class="p-sub">UPTD Puskesmas Cangadi</div>
+    <hr class="p-divider">
+    <div class="p-row">
+      <span class="p-row-label">Tanggal</span>
+      <span class="p-row-val" id="pDate">—</span>
+    </div>
+    <div class="p-row">
+      <span class="p-row-label">Jam Daftar</span>
+      <span class="p-row-val" id="pTime">—</span>
+    </div>
+    <div class="p-row">
+      <span class="p-row-label">Antrian di Depan</span>
+      <span class="p-row-val" id="pAhead">—</span>
+    </div>
+    <div class="p-row">
+      <span class="p-row-label">Est. Tunggu</span>
+      <span class="p-row-val" id="pWait">—</span>
+    </div>
+    <div class="p-wait-box">
+      <span class="p-wait-label">Perkiraan Waktu Tunggu</span>
+      <div  class="p-wait-val" id="pWaitBig">—</div>
+    </div>
+  </div>
+  <div class="p-footer">
+    <span class="p-clinic">UPTD Puskesmas Cangadi</span>
+    Simpan karcis ini dan perhatikan<br>
+    layar display untuk panggilan Anda.<br>
+    Terima kasih atas kesabaran Anda.
+  </div>
+</div>
+
+<script src="/pkm-shared.js"></script>
+<script>
+let polyclinics  = [];
+let selectedPoli = null;
+let allQueues    = [];
+
+/* ── CLOCK ── */
+setInterval(() => {
+  document.getElementById('clock').textContent = nowTime();
+}, 1000);
+nowTime && (document.getElementById('clock').textContent = nowTime());
+document.getElementById('headerDate').textContent = new Date().toLocaleDateString('id-ID',
+  { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+/* ── STEP ── */
+function goStep(n) {
+  [1,2,3].forEach(i => {
+    document.getElementById('screen'+i).classList.toggle('active', i===n);
+    const el = document.getElementById('s'+i);
+    el.className = 'step-num ' + (i<n?'done':i===n?'active':'idle');
+    if (i < n) el.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>`;
+    else el.textContent = i;
+  });
+
+  if (n === 1) {
+    selectedPoli = null;
+    document.getElementById('nameInput').value = '';
+  }
+
+  /* Screen 3: kunci scroll agar tombol selalu terlihat */
+  const sa = document.getElementById('scrollArea');
+  sa.classList.toggle('locked', n === 3);
+  sa.scrollTop = 0;
+}
+
+/* ── POLI ── */
+const POLI_ICONS = {
+  'Klaster 2 Umum':'👶','Klaster 3 Umum':'👥',
+  'Klaster 2 KIA':'🤱','Klaster 3 KB':'💉',
+  'Poli Gigi':'🦷',
+};
+
+async function loadPolis() {
+  try {
+    polyclinics = await apiFetch('/api/polyclinics');
+    renderPoliGrid();
+  } catch (err) {
+    document.getElementById('poliGrid').innerHTML =
+      `<div style="color:#c0392b;font-size:13px;grid-column:1/-1">${escHtml(err.message)}</div>`;
+  }
+}
+
+function renderPoliGrid() {
+  const grid = document.getElementById('poliGrid');
+  if (!polyclinics.length) {
+    grid.innerHTML = '<div style="color:var(--ink-3);font-size:13px;grid-column:1/-1">Tidak ada poliklinik aktif.</div>';
+    return;
+  }
+  grid.innerHTML = polyclinics.map(p => {
+    const cnt  = allQueues.filter(q => q.poliId === p.id && q.status === 'waiting').length;
+    // Trim nama poli dan cari icon dengan case-insensitive
+    const poliName = (p.name || '').trim();
+    let icon = POLI_ICONS[poliName];
+    
+    // Jika tidak ketemu, coba case-insensitive
+    if (!icon) {
+      const lowerName = poliName.toLowerCase();
+      for (const [key, value] of Object.entries(POLI_ICONS)) {
+        if (key.toLowerCase() === lowerName) {
+          icon = value;
+          break;
+        }
+      }
+    }
+    
+    // Default icon jika tidak ketemu
+    if (!icon) {
+      icon = '🏥';
+      console.warn(`Icon tidak ditemukan untuk poli: "${poliName}"`);
+    }
+    
+    return `<div class="poli-card" onclick="selectPoli(${p.id})">
+      <div class="poli-icon-wrap"><span style="font-size:24px">${icon}</span></div>
+      <div class="poli-card-name">${escHtml(p.name)}</div>
+      <div class="poli-card-count ${cnt===0?'zero':''}">
+        ${cnt===0
+          ? '<span>Kosong</span>'
+          : `<svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${cnt} menunggu`}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function selectPoli(id) {
+  selectedPoli = polyclinics.find(p => p.id === id);
+  if (!selectedPoli) return;
+  document.getElementById('selectedPoliName').textContent = selectedPoli.name;
+  goStep(2);
+  setTimeout(() => document.getElementById('nameInput').focus(), 100);
+}
+
+/* ── SUBMIT ── */
+async function submitQueue() {
+  if (!selectedPoli) return;
+  const btn  = document.getElementById('btnSubmit');
+  const name = document.getElementById('nameInput').value.trim();
+  btn.disabled = true;
+  btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin .8s linear infinite"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Memproses...`;
+  try {
+    const item = await apiFetch('/api/queue', {
+      method: 'POST',
+      body:   JSON.stringify({ name, poli_id: selectedPoli.id }),
+    });
+    await loadQueues(); /* reload agar "antrian di depan" akurat */
+    renderTicket(item);
+    goStep(3);
+  } catch (err) {
+    showToast('Gagal', err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>Ambil Nomor`;
+  }
+}
+
+/* ── RENDER TIKET ── */
+function renderTicket(item) {
+  const ahead  = allQueues.filter(q => q.status === 'waiting' && q.queueNumber < item.queueNumber).length;
+  const estMin = ahead * 5;
+  const estTxt   = estMin > 0 ? `±${estMin} menit`   : 'Segera dipanggil';
+  const aheadTxt = ahead > 0 ? `${ahead} antrian`    : 'Tidak ada';
+  const estShort = estMin > 0 ? `±${estMin} mnt`     : 'Segera';
+
+  /* tampilan layar */
+  document.getElementById('ticketNum').textContent     = padNum(item.queueNumber);
+  document.getElementById('ticketPoli').textContent    = item.poliName;
+  document.getElementById('ticketName').textContent    = item.name || 'Pasien Anonim';
+  document.getElementById('ticketDate').textContent    = new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'2-digit',year:'numeric'});
+  document.getElementById('ticketTime').textContent    = item.timestamp || nowTime();
+  document.getElementById('ticketAhead').textContent   = aheadTxt;
+  document.getElementById('ticketWaitVal').textContent = estShort;
+  document.getElementById('ticketWaitBig').textContent = estTxt;
+
+  /* area cetak — isi identik */
+  document.getElementById('pNum').textContent     = padNum(item.queueNumber);
+  document.getElementById('pPoli').textContent    = item.poliName;
+  document.getElementById('pName').textContent    = item.name || 'Pasien Anonim';
+  document.getElementById('pDate').textContent    = new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'2-digit',year:'numeric'});
+  document.getElementById('pTime').textContent    = item.timestamp || nowTime();
+  document.getElementById('pAhead').textContent   = aheadTxt;
+  document.getElementById('pWait').textContent    = estShort;
+  document.getElementById('pWaitBig').textContent = estTxt;
+}
+
+/* ── CETAK ── */
+function doPrint() {
+  const btn = document.getElementById('btnPrint');
+  btn.disabled = true;
+  btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin .8s linear infinite"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Mencetak...`;
+
+  setTimeout(() => {
+    window.print();
+    /* setelah dialog print ditutup, otomatis kembali ke awal */
+    setTimeout(() => {
+      goStep(1);
+      btn.disabled = false;
+      btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Cetak Karcis`;
+    }, 800);
+  }, 300);
+}
+
+/* ── ENTER KEY ── */
+document.getElementById('nameInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') submitQueue();
+});
+
+/* ── AUTO RESET (5 menit idle) ── */
+let idleTimer;
+function resetIdleTimer() {
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => {
+    if (!document.getElementById('screen1').classList.contains('active')) goStep(1);
+  }, 5 * 60 * 1000);
+}
+['click','touchstart','keydown'].forEach(ev => document.addEventListener(ev, resetIdleTimer));
+resetIdleTimer();
+
+/* ── WEBSOCKET ── */
+createWS(msg => {
+  if (msg.type === 'QUEUE_UPDATE') loadQueues();
+});
+
+/* ── LOAD QUEUES ── */
+async function loadQueues() {
+  try {
+    allQueues = await apiFetch('/api/queue');
+    renderPoliGrid();
+    const called = allQueues.find(q => q.status === 'called');
+    const banner = document.getElementById('callingBanner');
+    if (called) {
+      banner.classList.add('show');
+      document.getElementById('callingNum').textContent  = padNum(called.queueNumber);
+      document.getElementById('callingName').textContent = called.name;
+      document.getElementById('callingPoli').textContent = called.poliName;
+    } else {
+      banner.classList.remove('show');
+    }
+  } catch {}
+}
+
+loadPolis();
+loadQueues();
+</script>
+</body>
+</html>

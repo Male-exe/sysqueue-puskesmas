@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login — UPTD Puskesmas Cangadi</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --accent:#0057d8;--accent-2:#003fa3;
+  --ink-1:#0d1b2a;--ink-2:#3a5068;--ink-3:#7a95ae;
+  --border:#e1e8f0;--surface:#fff;--bg:#f0f4f8;
+  --r:12px;--shadow:0 4px 24px rgba(0,0,0,.08);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);min-height:100vh;
+  display:flex;align-items:center;justify-content:center;padding:1rem}
+
+.wrap{width:100%;max-width:400px}
+
+.logo-area{text-align:center;margin-bottom:2rem}
+.logo-icon{border-radius:16px;
+  display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px}
+.logo-icon svg{color:#fff}
+.logo-name{font-size:20px;font-weight:700;color:var(--ink-1)}
+.logo-sub{font-size:13px;color:var(--ink-3);margin-top:2px}
+
+.card{background:var(--surface);border-radius:20px;padding:2rem;
+  box-shadow:var(--shadow);border:1px solid var(--border)}
+
+.card-title{font-size:16px;font-weight:600;color:var(--ink-1);margin-bottom:1.5rem;text-align:center}
+
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.field label{font-size:12px;font-weight:500;color:var(--ink-2)}
+.field input{height:42px;padding:0 14px;border:1.5px solid var(--border);border-radius:var(--r);
+  font-family:inherit;font-size:14px;color:var(--ink-1);background:#f9fcff;outline:none;transition:.15s}
+.field input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,87,216,.1);background:#fff}
+
+.btn-login{width:100%;height:44px;background:var(--accent);color:#fff;border:none;
+  border-radius:var(--r);font-family:inherit;font-size:14px;font-weight:600;
+  cursor:pointer;transition:.15s;margin-top:6px;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-login:hover{background:var(--accent-2)}
+.btn-login:disabled{opacity:.6;cursor:not-allowed}
+
+.err{background:#fdecea;border:1px solid #f5c6c2;border-radius:8px;padding:10px 14px;
+  font-size:13px;color:#8b1a1a;margin-bottom:14px;display:none}
+
+.divider{border:none;border-top:1px solid var(--border);margin:1.5rem 0}
+.quick-links{display:flex;flex-direction:column;gap:8px}
+.quick-link{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--r);
+  border:1px solid var(--border);text-decoration:none;color:var(--ink-2);font-size:13px;
+  transition:.15s;background:var(--bg)}
+.quick-link:hover{background:#e8f0fe;border-color:#c5d9fa;color:var(--accent)}
+.quick-link span{font-weight:500}
+.quick-link small{margin-left:auto;font-size:11px;color:var(--ink-3)}
+.ql-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo-area">
+    <div class="logo-icon">
+      <img src="/assets/logo_puskesmas.png" alt="Logo Puskesmas" style="width: 150px;height: 150px">
+    </div>
+    <div class="logo-name">UPTD Puskesmas Cangadi</div>
+    <div class="logo-sub">Sistem Manajemen Antrian</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Masuk ke Sistem</div>
+    <div class="err" id="errMsg"></div>
+    <form id="loginForm">
+      <div class="field">
+        <label>Username</label>
+        <input type="text" id="username" placeholder="Masukkan username" autocomplete="username" required>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="password" placeholder="Masukkan password" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="btn-login" id="btnLogin">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        Masuk
+      </button>
+    </form>
+
+    <hr class="divider">
+    <div style="font-size:11px;color:var(--ink-3);margin-bottom:10px;text-align:center">Akses Tanpa Login</div>
+    <div class="quick-links">
+      <a href="/kiosk" class="quick-link">
+        <div class="ql-icon" style="background:#f3e5f5">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6200ea" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+        </div>
+        <span>Mesin Antrian (Kiosk)</span>
+        <small>Ambil Nomor</small>
+      </a>
+      <a href="/display" class="quick-link">
+        <div class="ql-icon" style="background:#e6f7f0">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0a7c4e" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        </div>
+        <span>Layar Display LCD</span>
+        <small>Ruang Tunggu</small>
+      </a>
+    </div>
+  </div>
+</div>
+
+<script src="/pkm-shared.js"></script>
+<script>
+// Redirect jika sudah login
+(function() {
+  const user = Auth.getUser();
+  if (user && Auth.getToken()) {
+    const dest = { admin:'admin', petugas:'petugas', patient:'kiosk' };
+    location.href = '/' + (dest[user.role] || 'kiosk');
+  }
+})();
+
+document.getElementById('loginForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn  = document.getElementById('btnLogin');
+  const err  = document.getElementById('errMsg');
+  const user = document.getElementById('username').value.trim();
+  const pass = document.getElementById('password').value;
+
+  err.style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = 'Memproses...';
+
+  try {
+    const data = await apiFetch('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ username: user, password: pass }),
+    });
+    Auth.setSession(data.token, data.user);
+    const dest = { admin:'/admin', petugas:'/petugas', patient:'/kiosk' };
+    location.href = dest[data.user.role] || '/kiosk';
+  } catch (ex) {
+    err.textContent = ex.message;
+    err.style.display = 'block';
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>Masuk`;
+  }
+});
+</script>
+</body>
+</html>

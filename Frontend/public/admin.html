@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard — UPTD Puskesmas Cangadi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f7fb;--surface:#fff;--surface-2:#f8fafd;
+  --border:#e4eaf2;--border-2:#d0dcea;
+  --ink-1:#0c1a2b;--ink-2:#3b5068;--ink-3:#8aa0b8;
+  --blue:#1a6bff;--blue-2:#0f52d4;--blue-bg:#eef3ff;--blue-txt:#0f3fa3;
+  --violet:#7c3aed;--violet-bg:#f3eeff;--violet-txt:#4c1d95;
+  --green:#059669;--green-bg:#ecfdf5;--green-txt:#064e3b;--green-border:rgba(5,150,105,.2);
+  --amber:#d97706;--amber-bg:#fffbeb;--amber-txt:#78350f;
+  --red:#dc2626;--red-bg:#fef2f2;--red-txt:#7f1d1d;
+  --font-display:'Syne',sans-serif;
+  --font-body:'DM Sans',sans-serif;
+  --font-mono:'DM Mono',monospace;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:0 4px 16px rgba(0,0,0,.07);
+  --shadow-lg:0 12px 32px rgba(0,0,0,.10);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-body);background:var(--bg);color:var(--ink-1);min-height:100vh;display:flex;flex-direction:column}
+
+/* ── TOPBAR ── */
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 1.5rem;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:var(--shadow-sm);flex-shrink:0}
+.topbar-brand{display:flex;align-items:center;gap:10px}
+.brand-logo{width:34px;height:34px;border-radius:9px;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--blue-bg);border:1px solid var(--border)}
+.brand-logo img{width:100%;height:100%;object-fit:cover}
+.brand-name{font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--ink-1);letter-spacing:-.2px}
+.brand-sub{font-size:10px;color:var(--ink-3);margin-top:1px}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.user-chip{display:flex;align-items:center;gap:6px;padding:5px 10px;background:var(--blue-bg);border:1px solid #c5d9fa;border-radius:20px;font-size:12px;color:var(--blue-txt);font-weight:600}
+.btn-logout{height:32px;padding:0 12px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--ink-2);font-size:12px;font-weight:500;cursor:pointer;font-family:var(--font-body);transition:.15s;display:flex;align-items:center;gap:5px}
+.btn-logout:hover{background:var(--red-bg);color:var(--red);border-color:#fecaca}
+
+/* ── LAYOUT ── */
+.app-body{display:flex;flex:1}
+.sidebar{width:200px;background:var(--surface);border-right:1px solid var(--border);padding:.75rem 0;flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto}
+.nav-section{padding:.5rem .875rem .25rem;font-size:10px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:1px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:.6rem .875rem;font-size:13px;font-weight:500;color:var(--ink-2);cursor:pointer;transition:.15s;border:none;background:none;width:100%;text-align:left;border-right:2px solid transparent}
+.nav-item:hover{background:var(--surface-2);color:var(--ink-1)}
+.nav-item.active{background:var(--blue-bg);color:var(--blue-txt);font-weight:600;border-right-color:var(--blue)}
+.nav-item svg{flex-shrink:0;opacity:.7}
+.nav-item.active svg{opacity:1}
+.nav-divider{height:1px;background:var(--border);margin:.5rem .875rem}
+.main-area{flex:1;padding:1.5rem;overflow:auto;min-width:0}
+
+/* ── TAB PANELS ── */
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* ── CARDS ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:1.25rem}
+.card-head{padding:.875rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
+.card-title{font-size:14px;font-weight:600;color:var(--ink-1)}
+.card-body{padding:1.25rem}
+
+/* ── STATS GRID ── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1rem;margin-bottom:1.25rem}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:.875rem 1rem;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--c,var(--border));border-radius:12px 12px 0 0}
+.stat-label{font-size:10px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px}
+.stat-val{font-family:var(--font-mono);font-size:26px;font-weight:500;color:var(--ink-1)}
+.stat-meta{font-size:11px;color:var(--ink-3);margin-top:3px}
+
+/* ── POLI BAR CHART ── */
+.poli-bar{display:flex;flex-direction:column;gap:10px}
+.poli-bar-item{display:flex;flex-direction:column;gap:4px}
+.poli-bar-top{display:flex;justify-content:space-between;font-size:13px}
+.poli-bar-track{height:7px;background:var(--border);border-radius:4px;overflow:hidden}
+.poli-bar-fill{height:100%;background:var(--blue);border-radius:4px;transition:width .5s ease}
+
+/* ── TABLE ── */
+table{width:100%;border-collapse:collapse}
+thead th{padding:9px 1rem;text-align:left;font-size:10px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.8px;background:var(--surface-2);border-bottom:1px solid var(--border);white-space:nowrap}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--surface-2)}
+tbody td{padding:10px 1rem;font-size:13px;vertical-align:middle}
+.table-wrap{overflow-x:auto}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-admin{background:var(--blue-bg);color:var(--blue-txt)}
+.badge-petugas{background:var(--green-bg);color:var(--green-txt)}
+.badge-on{background:var(--green-bg);color:var(--green-txt)}
+.badge-off{background:var(--red-bg);color:var(--red-txt)}
+.badge-wait{background:var(--amber-bg);color:var(--amber-txt)}
+.badge-called{background:var(--violet-bg);color:var(--violet-txt)}
+
+/* ── BUTTONS ── */
+.btn{height:34px;padding:0 14px;border-radius:8px;border:1px solid transparent;font-family:var(--font-body);font-size:13px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.15s}
+.btn-primary{background:var(--blue);color:#fff;box-shadow:0 1px 3px rgba(0,87,216,.2)}
+.btn-primary:hover{background:var(--blue-2)}
+.btn-sm{height:28px;padding:0 10px;font-size:12px;border-radius:6px}
+.btn-edit{background:var(--blue-bg);color:var(--blue-txt);border-color:#c5d9fa}.btn-edit:hover{background:#dce8fd}
+.btn-warn{background:var(--amber-bg);color:var(--amber-txt);border-color:#fcd34d}.btn-warn:hover{background:#fef3c7}
+.btn-del{background:var(--red-bg);color:var(--red-txt);border-color:#fecaca}.btn-del:hover{background:#fbd5d2}
+.btn-outline{background:transparent;border-color:var(--border);color:var(--ink-2)}.btn-outline:hover{background:var(--surface-2)}
+.btn-danger{background:var(--red);color:#fff}.btn-danger:hover{background:#b91c1c}
+.btn-export{background:var(--green-bg);color:var(--green-txt);border-color:#a7dfc8}.btn-export:hover{background:#c8edd9}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(13,27,42,.45);z-index:500;display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;transition:opacity .2s;pointer-events:none}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal-box{background:var(--surface);border-radius:18px;padding:1.75rem;max-width:480px;width:100%;box-shadow:var(--shadow-lg);transform:scale(.96);transition:transform .2s}
+.modal-overlay.open .modal-box{transform:scale(1)}
+.modal-title{font-size:16px;font-weight:700;margin-bottom:1.25rem;color:var(--ink-1)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
+.field label{font-size:12px;font-weight:500;color:var(--ink-2)}
+.field input,.field select{height:40px;padding:0 12px;border:1.5px solid var(--border);border-radius:9px;font-family:var(--font-body);font-size:14px;color:var(--ink-1);background:#f9fcff;outline:none;transition:.15s}
+.field input:focus,.field select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(26,107,255,.1)}
+.field-hint{font-size:11px;color:var(--ink-3)}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:1.25rem}
+
+/* ── DATE INPUT ── */
+.date-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.date-input{height:36px;padding:0 12px;border:1px solid var(--border);border-radius:8px;font-family:var(--font-body);font-size:13px;color:var(--ink-1);background:var(--surface);outline:none}
+.date-input:focus{border-color:var(--blue)}
+
+/* ── EMPTY ── */
+.empty-row td{text-align:center;padding:2.5rem;color:var(--ink-3);font-size:13px}
+
+/* ── ZONE BAHAYA ── */
+.danger-zone{border:1px solid #fecaca;border-radius:12px;overflow:hidden;margin-bottom:1.25rem}
+.danger-zone-head{background:var(--red-bg);padding:.875rem 1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem}
+.danger-zone-title{font-size:14px;font-weight:600;color:var(--red-txt)}
+.danger-zone-body{padding:1rem 1.25rem;font-size:13px;color:var(--ink-2)}
+
+@media(max-width:700px){
+  .sidebar{display:none}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .form-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="topbar-brand">
+    <div class="brand-logo">
+      <img src="/assets/logo_puskesmas.png" alt="Logo"
+        onerror="this.style.display='none';this.parentElement.innerHTML='<svg width=16 height=16 viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;var(--blue)&quot; stroke-width=&quot;2&quot;><path d=&quot;M22 12h-4l-3 9L9 3l-3 9H2&quot;/></svg>'">
+    </div>
+    <div>
+      <div class="brand-name">UPTD Puskesmas Cangadi</div>
+      <div class="brand-sub">Dashboard Administrator</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="user-chip">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      <span id="adminName">Admin</span>
+    </div>
+    <button class="btn-logout" onclick="Auth.clear();location.href='/'">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Keluar
+    </button>
+  </div>
+</header>
+
+<div class="app-body">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="nav-section">Menu</div>
+    <button class="nav-item active" onclick="switchTab('dashboard',this)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </button>
+    <button class="nav-item" onclick="switchTab('antrian',this)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      Antrian
+    </button>
+    <button class="nav-item" onclick="switchTab('pengguna',this)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Pengguna
+    </button>
+    <button class="nav-item" onclick="switchTab('poli',this)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Poliklinik
+    </button>
+    <div class="nav-divider"></div>
+    <button class="nav-item" onclick="switchTab('export',this)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export Data
+    </button>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main-area">
+
+    <!-- ═══ DASHBOARD ═══ -->
+    <div class="tab-panel active" id="tab-dashboard">
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card" style="--c:var(--blue)">
+          <div class="stat-label">Total Hari Ini</div>
+          <div class="stat-val" id="sTotal">—</div>
+          <div class="stat-meta">antrian masuk</div>
+        </div>
+        <div class="stat-card" style="--c:var(--amber)">
+          <div class="stat-label">Menunggu</div>
+          <div class="stat-val" id="sWaiting">—</div>
+          <div class="stat-meta">dalam antrian</div>
+        </div>
+        <div class="stat-card" style="--c:var(--violet)">
+          <div class="stat-label">Dipanggil</div>
+          <div class="stat-val" id="sCalled">—</div>
+          <div class="stat-meta">sedang dilayani</div>
+        </div>
+        <div class="stat-card" style="--c:var(--green)">
+          <div class="stat-label">Selesai</div>
+          <div class="stat-val" id="sDone">—</div>
+          <div class="stat-meta">pasien terlayani</div>
+        </div>
+      </div>
+
+      <!-- Distribusi Poli -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">Distribusi per Poliklinik</div>
+          <div style="font-size:11px;color:var(--ink-3)" id="statsDate">—</div>
+        </div>
+        <div class="card-body">
+          <div class="poli-bar" id="poliBar">
+            <div style="font-size:13px;color:var(--ink-3)">Memuat...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Zona Bahaya -->
+      <div class="danger-zone">
+        <div class="danger-zone-head">
+          <div>
+            <div class="danger-zone-title">⚠️ Zona Berbahaya</div>
+          </div>
+          <button class="btn btn-danger btn-sm" onclick="handleResetQueue()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            Reset Seluruh Antrian
+          </button>
+        </div>
+        <div class="danger-zone-body">
+          Semua antrian aktif (waiting &amp; called) akan diselesaikan paksa. Data historis tetap tersimpan di database. Tindakan ini tidak dapat dibatalkan.
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ═══ ANTRIAN ═══ -->
+    <div class="tab-panel" id="tab-antrian">
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">Semua Antrian Aktif</div>
+          <button class="btn btn-outline btn-sm" onclick="loadQueues()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 4.5-7.8"/><polyline points="3 3 3 9 9 9"/></svg>
+            Refresh
+          </button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>No.</th><th>Nama Pasien</th><th>Poliklinik</th>
+                <th>Jam Daftar</th><th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="adminQueueBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ PENGGUNA ═══ -->
+    <div class="tab-panel" id="tab-pengguna">
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">Manajemen Pengguna</div>
+          <button class="btn btn-primary btn-sm" onclick="openUserModal()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+            Tambah Pengguna
+          </button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nama Lengkap</th><th>Username</th><th>Role</th>
+                <th>Status</th><th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="usersBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ POLIKLINIK ═══ -->
+    <div class="tab-panel" id="tab-poli">
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">Manajemen Poliklinik</div>
+          <button class="btn btn-primary btn-sm" onclick="openPoliModal()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+            Tambah Poli
+          </button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Kode</th><th>Nama Poliklinik</th><th>Status</th><th>Aksi</th></tr>
+            </thead>
+            <tbody id="poliBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ EXPORT ═══ -->
+    <div class="tab-panel" id="tab-export">
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">Export Data Antrian</div>
+        </div>
+        <div class="card-body">
+          <p style="font-size:13px;color:var(--ink-2);margin-bottom:1.25rem;line-height:1.6">
+            Pilih tanggal dan klik tombol export. File CSV akan langsung diunduh dan bisa dibuka di Microsoft Excel atau Google Sheets.
+          </p>
+          <div class="date-row">
+            <div>
+              <div style="font-size:12px;font-weight:500;color:var(--ink-2);margin-bottom:5px">Tanggal</div>
+              <input type="date" class="date-input" id="exportDate">
+            </div>
+            <div style="padding-top:22px">
+              <button class="btn btn-export" onclick="exportCSV()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Export CSV (Excel)
+              </button>
+            </div>
+          </div>
+          <div style="margin-top:1.25rem;padding:.875rem 1rem;background:var(--surface-2);border-radius:9px;font-size:12px;color:var(--ink-2);border:1px solid var(--border);line-height:1.6">
+            💡 Jika karakter Indonesia tidak terbaca di Excel, buka Excel → Data → From Text/CSV → pilih encoding <strong>UTF-8</strong>.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- .main-area -->
+</div><!-- .app-body -->
+
+<!-- ═══ MODAL PENGGUNA ═══ -->
+<div class="modal-overlay" id="userModal">
+  <div class="modal-box">
+    <div class="modal-title" id="userModalTitle">Tambah Pengguna</div>
+    <input type="hidden" id="editUserId">
+    <div class="form-grid">
+      <div class="field">
+        <label>Nama Lengkap *</label>
+        <input type="text" id="uFullName" placeholder="dr. Budi Santoso">
+      </div>
+      <div class="field">
+        <label>Username *</label>
+        <input type="text" id="uUsername" placeholder="budi.santoso">
+      </div>
+    </div>
+    <div class="form-grid">
+      <div class="field">
+        <label>Password <span id="passHint" style="color:var(--ink-3);font-weight:400;font-size:11px"></span></label>
+        <input type="password" id="uPassword" placeholder="Minimal 6 karakter">
+      </div>
+      <div class="field">
+        <label>Role *</label>
+        <select id="uRole">
+          <option value="petugas">Petugas</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('userModal')">Batal</button>
+      <button class="btn btn-primary" onclick="saveUser()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL POLIKLINIK ═══ -->
+<div class="modal-overlay" id="poliModal">
+  <div class="modal-box">
+    <div class="modal-title" id="poliModalTitle">Tambah Poliklinik</div>
+    <input type="hidden" id="editPoliId">
+    <div class="form-grid">
+      <div class="field">
+        <label>Kode (maks 10 karakter) *</label>
+        <input type="text" id="pCode" placeholder="UMU" maxlength="10"
+          oninput="this.value=this.value.toUpperCase()">
+      </div>
+      <div class="field">
+        <label>Nama Poliklinik *</label>
+        <input type="text" id="pName" placeholder="Umum">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('poliModal')">Batal</button>
+      <button class="btn btn-primary" onclick="savePoli()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<script src="/pkm-shared.js"></script>
+<script>
+/* ══════════════════════════════════════════════════
+   AUTH
+══════════════════════════════════════════════════ */
+const admin = Auth.requireRole(['admin'], '/');
+document.getElementById('adminName').textContent = admin.fullName || admin.username;
+
+/* default tanggal export = hari ini */
+document.getElementById('exportDate').value = new Date().toISOString().slice(0,10);
+
+let polyclinics = [];
+let users       = [];
+
+/* ══════════════════════════════════════════════════
+   TAB NAVIGATION
+══════════════════════════════════════════════════ */
+function switchTab(name, el) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  el.classList.add('active');
+  if (name === 'dashboard') loadStats();
+  if (name === 'antrian')   loadQueues();
+  if (name === 'pengguna')  loadUsers();
+  if (name === 'poli')      loadPolis();
+}
+
+/* ══════════════════════════════════════════════════
+   MODAL HELPERS
+══════════════════════════════════════════════════ */
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+});
+
+/* ══════════════════════════════════════════════════
+   DASHBOARD — STATS
+══════════════════════════════════════════════════ */
+async function loadStats() {
+  try {
+    const s = await apiFetch('/api/stats');
+    document.getElementById('sTotal').textContent   = s.summary.total   || 0;
+    document.getElementById('sWaiting').textContent = s.summary.waiting || 0;
+    document.getElementById('sCalled').textContent  = s.summary.called  || 0;
+    document.getElementById('sDone').textContent    = s.summary.done    || 0;
+    document.getElementById('statsDate').textContent = `Data: ${s.date}`;
+
+    const total = s.summary.total || 1;
+    const bar   = document.getElementById('poliBar');
+
+    if (!s.byPoli || !s.byPoli.length) {
+      bar.innerHTML = `<div style="font-size:13px;color:var(--ink-3)">Belum ada data hari ini.</div>`;
+      return;
+    }
+
+    bar.innerHTML = s.byPoli.map(p => {
+      const pct = Math.round((p.total / total) * 100);
+      return `<div class="poli-bar-item">
+        <div class="poli-bar-top">
+          <span style="font-size:13px;font-weight:500">${escHtml(p.poli_name)}</span>
+          <span style="font-size:12px;color:var(--ink-3)">${p.total} antrian · ${p.done||0} selesai</span>
+        </div>
+        <div class="poli-bar-track">
+          <div class="poli-bar-fill" style="width:${pct}%"></div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch (err) {
+    showToast('Error', err.message, 'error');
+  }
+}
+
+async function handleResetQueue() {
+  const ok = await showConfirm(
+    'Reset Seluruh Antrian',
+    'Semua antrian aktif akan diselesaikan paksa. Data historis tetap aman. Lanjutkan?'
+  );
+  if (!ok) return;
+  try {
+    await apiFetch('/api/queue/reset', { method: 'DELETE' });
+    showToast('Reset', 'Semua antrian aktif telah direset.', 'warn');
+    loadStats();
+  } catch (err) {
+    showToast('Gagal', err.message, 'error');
+  }
+}
+
+/* ══════════════════════════════════════════════════
+   TAB ANTRIAN
+══════════════════════════════════════════════════ */
+async function loadQueues() {
+  try {
+    const q  = await apiFetch('/api/queue');
+    const tb = document.getElementById('adminQueueBody');
+
+    if (!q.length) {
+      tb.innerHTML = `<tr class="empty-row"><td colspan="5">Tidak ada antrian aktif saat ini</td></tr>`;
+      return;
+    }
+
+    tb.innerHTML = q.sort((a,b) => a.queueNumber - b.queueNumber).map(r => {
+      const badge = r.status === 'called'
+        ? `<span class="badge badge-called">Dipanggil</span>`
+        : `<span class="badge badge-wait">Menunggu</span>`;
+      return `<tr>
+        <td style="font-family:var(--font-mono);font-weight:500">${padNum(r.queueNumber)}</td>
+        <td style="font-weight:500">${escHtml(r.name)}</td>
+        <td style="font-size:12px;color:var(--ink-2)">${escHtml(r.poliName)}</td>
+        <td style="font-family:var(--font-mono);font-size:12px;color:var(--ink-3)">${escHtml(r.timestamp)}</td>
+        <td>${badge}</td>
+      </tr>`;
+    }).join('');
+  } catch (err) {
+    showToast('Error', err.message, 'error');
+  }
+}
+
+/* ══════════════════════════════════════════════════
+   TAB PENGGUNA
+══════════════════════════════════════════════════ */
+async function loadUsers() {
+  try {
+    users = await apiFetch('/api/users');
+    renderUsers();
+  } catch (err) {
+    showToast('Error', err.message, 'error');
+  }
+}
+
+function renderUsers() {
+  const tb = document.getElementById('usersBody');
+  if (!users.length) {
+    tb.innerHTML = `<tr class="empty-row"><td colspan="5">Tidak ada pengguna</td></tr>`;
+    return;
+  }
+  tb.innerHTML = users.map(u => `
+    <tr>
+      <td style="font-weight:500">${escHtml(u.full_name)}</td>
+      <td style="font-family:var(--font-mono);font-size:12px">${escHtml(u.username)}</td>
+      <td><span class="badge badge-${u.role}">${u.role}</span></td>
+      <td><span class="badge ${u.is_active ? 'badge-on' : 'badge-off'}">${u.is_active ? 'Aktif' : 'Nonaktif'}</span></td>
+      <td>
+        <div style="display:flex;gap:5px">
+          <button class="btn btn-sm btn-edit"
+            onclick='openUserModal(${JSON.stringify(u).replace(/'/g,"&#39;")})'>
+            Edit
+          </button>
+          ${u.id !== admin.id
+            ? `<button class="btn btn-sm ${u.is_active ? 'btn-del' : 'btn-warn'}"
+                onclick="toggleUser(${u.id},${u.is_active})">
+                ${u.is_active ? 'Nonaktifkan' : 'Aktifkan'}
+               </button>`
+            : ''}
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function openUserModal(user) {
+  document.getElementById('userModalTitle').textContent = user ? 'Edit Pengguna' : 'Tambah Pengguna';
+  document.getElementById('passHint').textContent       = user ? '(kosongkan jika tidak diubah)' : '*';
+  document.getElementById('editUserId').value  = user ? user.id       : '';
+  document.getElementById('uFullName').value   = user ? user.full_name : '';
+  document.getElementById('uUsername').value   = user ? user.username  : '';
+  document.getElementById('uPassword').value   = '';
+  document.getElementById('uRole').value       = user ? user.role      : 'petugas';
+  openModal('userModal');
+}
+
+async function saveUser() {
+  const id       = document.getElementById('editUserId').value;
+  const fullName = document.getElementById('uFullName').value.trim();
+  const username = document.getElementById('uUsername').value.trim();
+  const password = document.getElementById('uPassword').value;
+  const role     = document.getElementById('uRole').value;
+
+  if (!fullName || !username)  { showToast('Validasi', 'Nama dan username wajib diisi.', 'warn'); return; }
+  if (!id && !password)        { showToast('Validasi', 'Password wajib diisi untuk pengguna baru.', 'warn'); return; }
+  if (password && password.length < 6) { showToast('Validasi', 'Password minimal 6 karakter.', 'warn'); return; }
+
+  try {
+    const body = { full_name: fullName, username, role, is_active: 1 };
+    if (password) body.password = password;
+
+    if (id) {
+      await apiFetch(`/api/users/${id}`, { method: 'PUT', body: JSON.stringify(body) });
+      showToast('Berhasil', 'Data pengguna diperbarui.', 'success');
+    } else {
+      await apiFetch('/api/users', { method: 'POST', body: JSON.stringify(body) });
+      showToast('Berhasil', `Pengguna "${username}" berhasil dibuat.`, 'success');
+    }
+    closeModal('userModal');
+    loadUsers();
+  } catch (err) {
+    showToast('Gagal', err.message, 'error');
+  }
+}
+
+async function toggleUser(id, isActive) {
+  const u  = users.find(x => x.id === id);
+  if (!u) return;
+  const ok = await showConfirm(
+    isActive ? 'Nonaktifkan Pengguna' : 'Aktifkan Pengguna',
+    `${isActive ? 'Nonaktifkan' : 'Aktifkan'} akun "${u.username}"?`
+  );
+  if (!ok) return;
+  try {
+    await apiFetch(`/api/users/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        full_name: u.full_name, username: u.username,
+        role: u.role, is_active: isActive ? 0 : 1
+      }),
+    });
+    showToast('Berhasil', `Pengguna ${isActive ? 'dinonaktifkan' : 'diaktifkan'}.`, 'success');
+    loadUsers();
+  } catch (err) {
+    showToast('Gagal', err.message, 'error');
+  }
+}
+
+/* ══════════════════════════════════════════════════
+   TAB POLIKLINIK
+══════════════════════════════════════════════════ */
+async function loadPolis() {
+  try {
+    polyclinics = await apiFetch('/api/polyclinics');
+    const tb    = document.getElementById('poliBody');
+
+    if (!polyclinics.length) {
+      tb.innerHTML = `<tr class="empty-row"><td colspan="4">Belum ada poliklinik</td></tr>`;
+      return;
+    }
+
+    tb.innerHTML = polyclinics.map(p => `
+      <tr>
+        <td style="font-family:var(--font-mono);font-weight:500">${escHtml(p.code)}</td>
+        <td style="font-weight:500">${escHtml(p.name)}</td>
+        <td><span class="badge ${p.is_active ? 'badge-on' : 'badge-off'}">${p.is_active ? 'Aktif' : 'Nonaktif'}</span></td>
+        <td>
+          <div style="display:flex;gap:5px">
+            <button class="btn btn-sm btn-edit"
+              onclick="openPoliModal(${p.id},'${escHtml(p.code)}','${escHtml(p.name)}',${p.is_active})">
+              Edit
+            </button>
+            <button class="btn btn-sm ${p.is_active ? 'btn-del' : 'btn-warn'}"
+              onclick="togglePoli(${p.id},${p.is_active})">
+              ${p.is_active ? 'Nonaktifkan' : 'Aktifkan'}
+            </button>
+          </div>
+        </td>
+      </tr>`).join('');
+  } catch (err) {
+    showToast('Error', err.message, 'error');
+  }
+}
+
+function openPoliModal(id, code, name, isActive) {
+  document.getElementById('poliModalTitle').textContent = id ? 'Edit Poliklinik' : 'Tambah Poliklinik';
+  document.getElementById('editPoliId').value = id   || '';
+  document.getElementById('pCode').value      = code || '';
+  document.getElementById('pName').value      = name || '';
+  openModal('poliModal');
+}
+
+async function savePoli() {
+  const id   = document.getElementById('editPoliId').value;
+  const code = document.getElementById('pCode').value.trim().toUpperCase();
+  const name = document.getElementById('pName').value.trim();
+  if (!code || !name) { showToast('Validasi', 'Kode dan nama wajib diisi.', 'warn'); return; }
+  try {
+    if (id) {
+      await apiFetch(`/api/polyclinics/${id}`, {
+        method: 'PUT', body: JSON.stringify({ name, is_active: 1 })
+      });
+      showToast('Berhasil', 'Poliklinik diperbarui.', 'success');
+    } else {
+      await apiFetch('/api/polyclinics', {
+        method: 'POST', body: JSON.stringify({ code, name })
+      });
+      showToast('Berhasil', `Poli "${name}" ditambahkan.`, 'success');
+    }
+    closeModal('poliModal');
+    loadPolis();
+  } catch (err) {
+    showToast('Gagal', err.message, 'error');
+  }
+}
+
+async function togglePoli(id, isActive) {
+  const p  = polyclinics.find(x => x.id === id);
+  if (!p) return;
+  const ok = await showConfirm(
+    isActive ? 'Nonaktifkan Poliklinik' : 'Aktifkan Poliklinik',
+    `Poli "${p.name}" akan ${isActive ? 'disembunyikan dari kiosk' : 'ditampilkan kembali di kiosk'}.`
+  );
+  if (!ok) return;
+  try {
+    await apiFetch(`/api/polyclinics/${id}`, {
+      method: 'PUT', body: JSON.stringify({ name: p.name, is_active: isActive ? 0 : 1 })
+    });
+    showToast('Berhasil', `Poli "${p.name}" ${isActive ? 'dinonaktifkan' : 'diaktifkan'}.`, 'success');
+    loadPolis();
+  } catch (err) {
+    showToast('Gagal', err.message, 'error');
+  }
+}
+
+/* ══════════════════════════════════════════════════
+   EXPORT CSV
+══════════════════════════════════════════════════ */
+function exportCSV() {
+  const date  = document.getElementById('exportDate').value;
+  const token = Auth.getToken();
+  if (!date) { showToast('Validasi', 'Pilih tanggal terlebih dahulu.', 'warn'); return; }
+  /* token dikirim via query param khusus untuk download file */
+  window.location.href = `/api/export/csv?date=${date}&token=${token}`;
+}
+
+/* ══════════════════════════════════════════════════
+   WEBSOCKET — update dashboard secara real-time
+══════════════════════════════════════════════════ */
+createWS(msg => {
+  if (msg.type !== 'QUEUE_UPDATE') return;
+  /* update stats secara senyap di background */
+  loadStats();
+  /* jika sedang di tab antrian, update tabelnya juga */
+  const activeTab = document.querySelector('.tab-panel.active');
+  if (activeTab && activeTab.id === 'tab-antrian') loadQueues();
+});
+
+/* ══════════════════════════════════════════════════
+   INIT — load stats saat halaman pertama dibuka
+══════════════════════════════════════════════════ */
+(async function init() {
+  polyclinics = await apiFetch('/api/polyclinics').catch(() => []);
+  loadStats();
+})();
+</script>
+</body>
+</html>
