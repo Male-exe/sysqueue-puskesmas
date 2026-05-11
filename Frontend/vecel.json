@@ -1,0 +1,9 @@
+{
+  "rewrites": [
+    { "source": "/kiosk",   "destination": "/public/kiosk.html"   },
+    { "source": "/petugas", "destination": "/public/petugas.html" },
+    { "source": "/display", "destination": "/public/display.html" },
+    { "source": "/admin",   "destination": "/public/admin.html"   },
+    { "source": "/",        "destination": "/public/login.html"   }
+  ]
+}
