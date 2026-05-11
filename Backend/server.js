@@ -1,5 +1,5 @@
 /**
- * RS Sehat Sentosa — Backend Produksi
+ * UPTD Puskesmas Cangadi — Backend Produksi
  * Auth: JWT + bcrypt | Roles: admin, petugas, patient
  * Stack: Node.js + Express + MariaDB/MySQL + WebSocket
  *
@@ -118,9 +118,14 @@ wss.on('connection', ws => {
 });
 
 /* ─── MIDDLEWARE ─────────────────────────────────────────────── */
-app.use(cors({ origin: process.env.ALLOWED_ORIGIN || '*' }));
+app.use(cors({
+  origin: [
+    'https://sysqueue-puskesmas.vercel.app',
+    'http://localhost:3000',
+  ],
+  credentials: true,
+}));
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
 
 /* ─── AUTH MIDDLEWARE ────────────────────────────────────────── */
