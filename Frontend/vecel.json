@@ -1,9 +1,10 @@
 {
+  "outputDirectory": "public",
   "rewrites": [
-    { "source": "/kiosk",   "destination": "public/kiosk.html"   },
-    { "source": "/petugas", "destination": "public/petugas.html" },
-    { "source": "/display", "destination": "public/display.html" },
-    { "source": "/admin",   "destination": "public/admin.html"   },
-    { "source": "/",        "destination": "public/login.html"   }
+    { "source": "/kiosk",   "destination": "/kiosk.html"   },
+    { "source": "/petugas", "destination": "/petugas.html" },
+    { "source": "/display", "destination": "/display.html" },
+    { "source": "/admin",   "destination": "/admin.html"   },
+    { "source": "/",        "destination": "/login.html"   }
   ]
 }
