@@ -22,7 +22,7 @@
    satu port). Ubah jika frontend dan backend terpisah.
 ══════════════════════════════════════════════════ */
 const PKM = {
-  BASE_URL: '',
+  BASE_URL: 'https://backend-sysqueue.up.railway.app',
   WS_URL:   `ws://${location.host}`,
 };
 
