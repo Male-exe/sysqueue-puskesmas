@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ambil Antrian — UPTD Puskesmas Cangadi</title>
-<link rel="icon" type="image/png href="/assets/logo_puskesmas.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -99,7 +98,7 @@ body {
 .calling-name  { font-size:11px; color:var(--ink-2); }
 .calling-poli  { margin-left:auto; font-size:11px; font-weight:600; color:var(--accent-txt); background:var(--accent-bg); padding:3px 9px; border-radius:20px; flex-shrink:0; }
 
-/* ── SCROLLABLE AREA (hanya screen 1 yang bisa scroll jika poli banyak) ── */
+/* ── SCROLLABLE AREA ── */
 .scroll-area {
   flex: 1;
   overflow-y: auto;
@@ -107,8 +106,6 @@ body {
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
 }
-
-/* Screen 3 dikunci penuh agar tidak perlu scroll */
 .scroll-area.locked { overflow: hidden; }
 
 /* ── MAIN ── */
@@ -180,7 +177,7 @@ body {
 .btn-back { background:var(--surface); color:var(--ink-2); border:1.5px solid var(--border-2); }
 .btn-back:hover { background:var(--surface-2); }
 
-/* ── SCREEN 3: TIKET (layout compact, no scroll) ── */
+/* ── SCREEN 3: TIKET ── */
 .ticket-screen {
   display: flex;
   flex-direction: column;
@@ -197,7 +194,6 @@ body {
   border: 1px solid var(--border);
 }
 
-/* header tiket — kompak */
 .ticket-head {
   background: var(--accent);
   padding: .875rem 1.25rem;
@@ -207,7 +203,6 @@ body {
 .ticket-num { font-family:var(--font-mono); font-size:58px; font-weight:500; line-height:1; letter-spacing:2px; }
 .ticket-head-poli { display:inline-block; margin-top:4px; padding:3px 12px; border-radius:20px; background:rgba(255,255,255,.2); font-size:12px; font-weight:600; }
 
-/* body tiket — kompak */
 .ticket-body { padding:.875rem 1.25rem; }
 .ticket-patient     { font-size:15px; font-weight:600; color:var(--ink-1); margin-bottom:2px; }
 .ticket-patient-sub { font-size:11px; color:var(--ink-3); margin-bottom:.75rem; }
@@ -216,17 +211,14 @@ body {
 .ticket-info-label { font-size:9px; font-weight:700; color:var(--ink-3); text-transform:uppercase; letter-spacing:.7px; margin-bottom:2px; }
 .ticket-info-val   { font-size:13px; font-weight:600; color:var(--ink-1); font-family:var(--font-mono); }
 
-/* estimasi tunggu kompak */
 .ticket-wait-bar { background:var(--success-bg); border:1px solid rgba(5,150,105,.2); border-radius:10px; padding:.625rem .875rem; display:flex; align-items:center; gap:10px; }
 .ticket-wait-icon { width:32px; height:32px; background:var(--success); border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
 .ticket-wait-label { font-size:10px; font-weight:600; color:var(--success); text-transform:uppercase; letter-spacing:.5px; margin-bottom:1px; }
 .ticket-wait-val   { font-size:15px; font-weight:700; color:var(--ink-1); }
 
-/* footer tiket */
 .ticket-foot { border-top:1px dashed var(--border); padding:.625rem 1.25rem; text-align:center; }
 .ticket-foot-txt { font-size:10px; color:var(--ink-3); line-height:1.5; }
 
-/* ── TOMBOL AKSI ── */
 .ticket-actions { display:flex; gap:8px; width:100%; max-width:440px; }
 .btn-print {
   flex:1; height:46px;
@@ -248,17 +240,16 @@ body {
 .btn-reset-soft:hover { background:var(--surface-2); color:var(--ink-1); }
 
 /* ══════════════════════════════════════════════════
-   PRINT STYLES
-   Teknik: sembunyikan semua dengan visibility:hidden
-   (BUKAN display:none) agar browser tetap mau print.
-   #printArea tetap di DOM tapi di luar layar.
+   PRINT STYLES (disempurnakan)
+   Lebar cetak aktif 72.1 mm agar sesuai dengan
+   area cetak kertas 80 mm (margin fisik ~4 mm)
 ══════════════════════════════════════════════════ */
-/* Sembunyikan printArea dari layar tanpa display:none */
 #printArea {
   position: absolute;
   left: -9999px;
   top: 0;
-  width: 80mm;
+  width: 72.1mm;
+  box-sizing: border-box;
 }
 
 @media print {
@@ -284,36 +275,39 @@ body {
     display: block !important;
   }
 
- 
-  /* ── Header cetak ── */
+  /* ── Header cetak (kompak) ── */
   .p-head {
-    background: #fff !important;
+    background: #000 !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
-    color: #000 !important;
-    padding: 5mm 5mm 4mm;
+    color: #fff !important;
+    padding: 3mm 4mm 2mm;
     text-align: center;
-    border: 1px solid #000;
   }
   .p-head-label {
-    font-size: 7pt; letter-spacing: 1.5px;
-    text-transform: uppercase; opacity: .75;
+    font-size: 7pt; letter-spacing: 1.2px;
+    text-transform: uppercase; opacity: .8;
     margin-bottom: 1.5mm; display: block;
-    color: #000;
   }
   .p-num {
-    font-size: 42pt; font-weight: 700;
+    font-size: 34pt;  /* sedikit dikecilkan agar tetap rapi */
+    font-weight: 700;
     line-height: 1; letter-spacing: 2px;
     display: block; font-family: 'DM Mono', monospace;
-    color: #000;
   }
   .p-poli-chip {
-    display: inline-block; margin-top: 1.5mm;
-    padding: 1.5mm 4mm;
-    border: 1px solid #000;
-    border-radius: 20px; font-size: 8.5pt; font-weight: 700;
-    color: #000;
+    display: inline-block;
+    margin-top: 1.5mm;
+    padding: 1mm 3mm;
+    border: 0.5px solid rgba(255,255,255,.6);
+    border-radius: 20px;
+    font-size: 8pt; font-weight: 700;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
+
   /* ── Body cetak ── */
   .p-body {
     padding: 2mm 4mm;
@@ -568,10 +562,7 @@ body {
 </div><!-- .scroll-area -->
 
 <!-- ══════════════════════════════════════════════════
-     AREA CETAK
-     Disimpan di luar scroll-area, di-offset ke kiri
-     agar tidak terlihat di layar tapi tetap ada di DOM
-     sehingga @media print bisa membacanya.
+     AREA CETAK (tersembunyi, aktif saat print)
 ══════════════════════════════════════════════════ -->
 <div id="printArea">
   <div class="p-head">
@@ -672,11 +663,9 @@ function renderPoliGrid() {
   }
   grid.innerHTML = polyclinics.map(p => {
     const cnt  = allQueues.filter(q => q.poliId === p.id && q.status === 'waiting').length;
-    // Trim nama poli dan cari icon dengan case-insensitive
     const poliName = (p.name || '').trim();
     let icon = POLI_ICONS[poliName];
     
-    // Jika tidak ketemu, coba case-insensitive
     if (!icon) {
       const lowerName = poliName.toLowerCase();
       for (const [key, value] of Object.entries(POLI_ICONS)) {
@@ -687,7 +676,6 @@ function renderPoliGrid() {
       }
     }
     
-    // Default icon jika tidak ketemu
     if (!icon) {
       icon = '🏥';
       console.warn(`Icon tidak ditemukan untuk poli: "${poliName}"`);
@@ -725,7 +713,7 @@ async function submitQueue() {
       method: 'POST',
       body:   JSON.stringify({ name, poli_id: selectedPoli.id }),
     });
-    await loadQueues(); /* reload agar "antrian di depan" akurat */
+    await loadQueues();
     renderTicket(item);
     goStep(3);
   } catch (err) {
@@ -744,7 +732,6 @@ function renderTicket(item) {
   const aheadTxt = ahead > 0 ? `${ahead} antrian`    : 'Tidak ada';
   const estShort = estMin > 0 ? `±${estMin} mnt`     : 'Segera';
 
-  /* tampilan layar */
   document.getElementById('ticketNum').textContent     = padNum(item.queueNumber);
   document.getElementById('ticketPoli').textContent    = item.poliName;
   document.getElementById('ticketName').textContent    = item.name || 'Pasien Anonim';
@@ -754,7 +741,6 @@ function renderTicket(item) {
   document.getElementById('ticketWaitVal').textContent = estShort;
   document.getElementById('ticketWaitBig').textContent = estTxt;
 
-  /* area cetak — isi identik */
   document.getElementById('pNum').textContent     = padNum(item.queueNumber);
   document.getElementById('pPoli').textContent    = item.poliName;
   document.getElementById('pName').textContent    = item.name || 'Pasien Anonim';
@@ -773,7 +759,6 @@ function doPrint() {
 
   setTimeout(() => {
     window.print();
-    /* setelah dialog print ditutup, otomatis kembali ke awal */
     setTimeout(() => {
       goStep(1);
       btn.disabled = false;
@@ -787,7 +772,7 @@ document.getElementById('nameInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') submitQueue();
 });
 
-/* ── AUTO RESET (5 menit idle) ── */
+/* ── AUTO RESET ── */
 let idleTimer;
 function resetIdleTimer() {
   clearTimeout(idleTimer);
