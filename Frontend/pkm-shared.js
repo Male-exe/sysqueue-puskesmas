@@ -23,7 +23,7 @@
 ══════════════════════════════════════════════════ */
 const PKM = {
   BASE_URL: 'https://backend-sysqueue.up.railway.app',
-  WS_URL:   `ws://${location.host}`,
+  WS_URL:   `wss://backend-sysqueue.up.railway.app`,
 };
 
 /* ══════════════════════════════════════════════════
