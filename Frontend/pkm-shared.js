@@ -161,46 +161,67 @@ async function apiFetch(endpoint, options = {}) {
  * @param {function} onMessage — callback dipanggil saat pesan diterima (sudah di-parse JSON)
  * @returns {{ close: function }} — object dengan method close() untuk menutup koneksi
  */
+/**
+ * createWS — Di production (Vercel+Railway) pakai polling karena
+ * WebSocket tidak reliable melewati Vercel CDN.
+ * Di localhost tetap pakai WebSocket asli.
+ */
 function createWS(onMessage) {
-  let ws;
-  let retryTimer;
-  let destroyed = false;
+  /* Deteksi apakah di production atau localhost */
+  const isLocal = location.hostname === 'localhost' ||
+                  location.hostname === '127.0.0.1';
 
-  function connect() {
-    if (destroyed) return;
+  if (isLocal) {
+    /* ── MODE LOKAL: pakai WebSocket asli ── */
+    let ws, retryTimer, destroyed = false;
 
-    try {
-      ws = new WebSocket(PKM.WS_URL);
-    } catch (err) {
-      console.warn('[WS] Gagal membuat koneksi:', err.message);
-      scheduleRetry();
-      return;
+    function connect() {
+      if (destroyed) return;
+      try {
+        ws = new WebSocket(PKM.WS_URL);
+      } catch (err) {
+        console.warn('[WS] Gagal:', err.message);
+        retryTimer = setTimeout(connect, 3000);
+        return;
+      }
+      ws.onopen    = () => console.log('[WS] Terhubung.');
+      ws.onmessage = e => {
+        try { onMessage(JSON.parse(e.data)); } catch {}
+      };
+      ws.onclose   = () => { if (!destroyed) retryTimer = setTimeout(connect, 3000); };
+      ws.onerror   = () => ws.close();
     }
 
-    ws.onopen = () => {
-      console.log('[WS] Terhubung ke server.');
+    connect();
+    return {
+      close() {
+        destroyed = true;
+        clearTimeout(retryTimer);
+        if (ws) ws.close();
+      }
     };
 
-    ws.onmessage = (e) => {
+  } else {
+    /* ── MODE PRODUCTION: pakai polling setiap 3 detik ── */
+    console.log('[Polling] Mode production aktif — polling setiap 3 detik.');
+    let timer;
+    let lastAction = null;
+
+    async function poll() {
       try {
-        const msg = JSON.parse(e.data);
-        onMessage(msg);
-      } catch {
-        /* abaikan pesan yang bukan JSON */
-      }
-    };
+        const data = await apiFetch('/api/queue');
+        if (data) {
+          /* Kirim pesan simulasi QUEUE_UPDATE agar halaman update */
+          onMessage({ type: 'QUEUE_UPDATE', action: 'POLL', data });
+        }
+      } catch {}
+      timer = setTimeout(poll, 3000);
+    }
 
-    ws.onclose = () => {
-      if (!destroyed) {
-        console.log('[WS] Koneksi terputus. Mencoba ulang...');
-        scheduleRetry();
-      }
-    };
-
-    ws.onerror = () => {
-      ws.close();
-    };
+    poll(); /* mulai langsung */
+    return { close() { clearTimeout(timer); } };
   }
+}
 
   function scheduleRetry() {
     clearTimeout(retryTimer);
