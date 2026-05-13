@@ -223,6 +223,25 @@ function createWS(onMessage) {
   }
 }
 
+/**
+ * keepAlive — Ping server setiap 5 menit agar Railway
+ * tidak mematikan server karena idle.
+ */
+function keepAlive() {
+  const interval = 5 * 60 * 1000; /* 5 menit */
+  setInterval(async () => {
+    try {
+      await fetch(PKM.BASE_URL + '/health');
+      console.log('[KeepAlive] Server aktif.');
+    } catch {}
+  }, interval);
+}
+
+/* Jalankan keep-alive hanya di production */
+if (location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+  keepAlive();
+}
+
   function scheduleRetry() {
     clearTimeout(retryTimer);
     retryTimer = setTimeout(connect, 3000);
