@@ -2,46 +2,41 @@
  * pkm-shared.js — Utilitas bersama semua halaman
  * UPTD Puskesmas Cangadi — Sistem Antrian
  *
- * Versi: 2.0 (terbaru)
+ * Versi: 3.0 (diperbaiki untuk koneksi Vercel ↔ Railway)
+ *
  * Include di setiap HTML:
  *   <script src="/pkm-shared.js"></script>
- *
- * Berisi:
- *  - Auth     : manajemen sesi JWT (login, logout, cek role)
- *  - apiFetch : wrapper fetch dengan token otomatis
- *  - createWS : WebSocket dengan auto-reconnect
- *  - showToast: notifikasi pop-up
- *  - showConfirm: dialog konfirmasi custom
- *  - Utilities: escHtml, padNum, nowTime, formatDate
- *  - Global CSS: animasi toast
  */
 
 /* ══════════════════════════════════════════════════
    CONFIG
-   BASE_URL kosong = same origin (server & frontend
-   satu port). Ubah jika frontend dan backend terpisah.
+   Gunakan environment variable VITE_API_URL (Vite)
+   atau REACT_APP_API_URL / NEXT_PUBLIC_API_URL
+   untuk production. Fallback ke URL Railway.
 ══════════════════════════════════════════════════ */
+const API_BASE = (
+  import.meta?.env?.VITE_API_URL ||
+  (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_API_URL) ||
+  (typeof process !== 'undefined' && process.env?.REACT_APP_API_URL) ||
+  'https://backend-sysqueue.up.railway.app'
+).replace(/\/$/, ''); // hapus trailing slash
+
 const PKM = {
-  BASE_URL: 'https://backend-sysqueue.up.railway.app',
-  WS_URL:   `ws://${location.host}`,
+  BASE_URL: API_BASE,
+  WS_URL: API_BASE.replace(/^http/, 'ws'), // http → ws, https → wss
 };
+
+console.log('[PKM] Backend URL:', PKM.BASE_URL);
+console.log('[PKM] WebSocket URL:', PKM.WS_URL);
 
 /* ══════════════════════════════════════════════════
    AUTH — Manajemen sesi JWT via localStorage
 ══════════════════════════════════════════════════ */
 const Auth = {
-  /**
-   * Ambil token JWT dari storage.
-   * @returns {string|null}
-   */
   getToken() {
     return localStorage.getItem('pkm_token');
   },
 
-  /**
-   * Ambil data user yang sedang login.
-   * @returns {object|null}
-   */
   getUser() {
     try {
       return JSON.parse(localStorage.getItem('pkm_user'));
@@ -50,39 +45,20 @@ const Auth = {
     }
   },
 
-  /**
-   * Simpan token dan data user setelah login berhasil.
-   * @param {string} token
-   * @param {object} user
-   */
   setSession(token, user) {
     localStorage.setItem('pkm_token', token);
-    localStorage.setItem('pkm_user',  JSON.stringify(user));
+    localStorage.setItem('pkm_user', JSON.stringify(user));
   },
 
-  /**
-   * Hapus sesi (logout).
-   */
   clear() {
     localStorage.removeItem('pkm_token');
     localStorage.removeItem('pkm_user');
   },
 
-  /**
-   * Cek apakah user sedang login.
-   * @returns {boolean}
-   */
   isLoggedIn() {
     return !!this.getToken();
   },
 
-  /**
-   * Pastikan user sudah login dan punya role yang sesuai.
-   * Jika tidak, redirect ke halaman login.
-   * @param {string[]} roles  — daftar role yang diizinkan, mis. ['admin','petugas']
-   * @param {string}   redirect — URL tujuan jika tidak authorized (default '/')
-   * @returns {object} data user jika authorized
-   */
   requireRole(roles = [], redirect = '/') {
     const user = this.getUser();
     if (!user || !this.getToken()) {
@@ -101,9 +77,9 @@ const Auth = {
 
 /* ══════════════════════════════════════════════════
    API FETCH — Wrapper fetch dengan:
-   - Header Authorization otomatis dari Auth.getToken()
-   - Redirect ke login jika 401
-   - Halaman publik (display, kiosk) tidak di-redirect
+   - Authorization header otomatis
+   - Redirect ke login jika 401 (kecuali halaman publik)
+   - Logging untuk debugging
    - Throw error dengan pesan dari server jika gagal
 ══════════════════════════════════════════════════ */
 async function apiFetch(endpoint, options = {}) {
@@ -118,30 +94,34 @@ async function apiFetch(endpoint, options = {}) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
+  const url = PKM.BASE_URL + endpoint;
   let res;
   try {
-    res = await fetch(PKM.BASE_URL + endpoint, { ...options, headers });
+    console.log(`[API] ${options.method || 'GET'} ${url}`);
+    res = await fetch(url, { ...options, headers });
   } catch (networkErr) {
+    console.error('[API] Network error:', networkErr);
     throw new Error('Tidak dapat terhubung ke server. Periksa koneksi jaringan.');
   }
 
-  /* 401 = token tidak valid / expired */
+  console.log(`[API] Response ${res.status} for ${endpoint}`);
+
+  // 401 = token tidak valid / expired
   if (res.status === 401) {
-    /* halaman publik (display & kiosk) tidak perlu redirect login */
     const publicPaths = ['/display', '/kiosk'];
-    const isPublic    = publicPaths.some(p => location.pathname.startsWith(p));
+    const isPublic = publicPaths.some(p => location.pathname.startsWith(p));
     if (!isPublic) {
       Auth.clear();
       location.href = '/';
     }
-    return; /* return undefined, biarkan caller handle */
+    return;
   }
 
-  /* parse JSON */
   let data;
   try {
     data = await res.json();
-  } catch {
+  } catch (parseErr) {
+    console.error('[API] JSON parse error:', parseErr);
     if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
     return {};
   }
@@ -154,45 +134,43 @@ async function apiFetch(endpoint, options = {}) {
 }
 
 /* ══════════════════════════════════════════════════
-   WEBSOCKET — Koneksi real-time dengan auto-reconnect
+   WEBSOCKET — Koneksi realtime (auto‑reconnect)
+   - Di localhost: WebSocket asli
+   - Di production (Vercel): polling setiap 3 detik
 ══════════════════════════════════════════════════ */
-/**
- * Buat koneksi WebSocket yang otomatis reconnect.
- * @param {function} onMessage — callback dipanggil saat pesan diterima (sudah di-parse JSON)
- * @returns {{ close: function }} — object dengan method close() untuk menutup koneksi
- */
-/**
- * createWS — Di production (Vercel+Railway) pakai polling karena
- * WebSocket tidak reliable melewati Vercel CDN.
- * Di localhost tetap pakai WebSocket asli.
- */
 function createWS(onMessage) {
-  /* Deteksi apakah di production atau localhost */
   const isLocal = location.hostname === 'localhost' ||
                   location.hostname === '127.0.0.1';
 
   if (isLocal) {
-    /* ── MODE LOKAL: pakai WebSocket asli ── */
+    /* ── MODE LOKAL: WebSocket asli ── */
     let ws, retryTimer, destroyed = false;
 
     function connect() {
       if (destroyed) return;
       try {
         ws = new WebSocket(PKM.WS_URL);
+        console.log('[WS] Connecting to', PKM.WS_URL);
       } catch (err) {
-        console.warn('[WS] Gagal:', err.message);
+        console.warn('[WS] Connection error:', err.message);
         retryTimer = setTimeout(connect, 3000);
         return;
       }
-      ws.onopen    = () => console.log('[WS] Terhubung.');
+
+      ws.onopen = () => console.log('[WS] Terhubung.');
       ws.onmessage = e => {
-        try { onMessage(JSON.parse(e.data)); } catch {}
+        try { onMessage(JSON.parse(e.data)); } catch (ex) {
+          console.warn('[WS] Parse error:', ex);
+        }
       };
-      ws.onclose   = () => { if (!destroyed) retryTimer = setTimeout(connect, 3000); };
-      ws.onerror   = () => ws.close();
+      ws.onclose = () => {
+        if (!destroyed) retryTimer = setTimeout(connect, 3000);
+      };
+      ws.onerror = () => ws.close();
     }
 
     connect();
+
     return {
       close() {
         destroyed = true;
@@ -200,77 +178,57 @@ function createWS(onMessage) {
         if (ws) ws.close();
       }
     };
-
   } else {
-    /* ── MODE PRODUCTION: pakai polling setiap 3 detik ── */
-    console.log('[Polling] Mode production aktif — polling setiap 3 detik.');
+    /* ── MODE PRODUCTION: polling setiap 3 detik ── */
+    console.log('[Polling] Production mode — polling setiap 3 detik ke', PKM.BASE_URL);
     let timer;
-    let lastAction = null;
 
     async function poll() {
       try {
         const data = await apiFetch('/api/queue');
         if (data) {
-          /* Kirim pesan simulasi QUEUE_UPDATE agar halaman update */
           onMessage({ type: 'QUEUE_UPDATE', action: 'POLL', data });
         }
-      } catch {}
+      } catch (err) {
+        console.warn('[Polling] Gagal fetch:', err.message);
+      }
       timer = setTimeout(poll, 3000);
     }
 
-    poll(); /* mulai langsung */
-    return { close() { clearTimeout(timer); } };
+    poll();
+
+    return {
+      close() {
+        clearTimeout(timer);
+      }
+    };
   }
 }
 
-/**
- * keepAlive — Ping server setiap 5 menit agar Railway
- * tidak mematikan server karena idle.
- */
+/* ══════════════════════════════════════════════════
+   KEEP‑ALIVE — Ping server agar tidak idle (Railway)
+   Hanya berjalan di production.
+══════════════════════════════════════════════════ */
 function keepAlive() {
-  const interval = 5 * 60 * 1000; /* 5 menit */
+  const interval = 5 * 60 * 1000; // 5 menit
   setInterval(async () => {
     try {
-      await fetch(PKM.BASE_URL + '/health');
-      console.log('[KeepAlive] Server aktif.');
-    } catch {}
+      const res = await fetch(PKM.BASE_URL + '/health');
+      console.log('[KeepAlive] Server aktif, status:', res.status);
+    } catch (err) {
+      console.warn('[KeepAlive] Gagal ping server:', err.message);
+    }
   }, interval);
 }
 
-/* Jalankan keep-alive hanya di production */
 if (location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
   keepAlive();
 }
 
-  function scheduleRetry() {
-    clearTimeout(retryTimer);
-    retryTimer = setTimeout(connect, 3000);
-  }
-
-  connect();
-
-  return {
-    close() {
-      destroyed = true;
-      clearTimeout(retryTimer);
-      if (ws) ws.close();
-    }
-  };
-}
-
 /* ══════════════════════════════════════════════════
    TOAST NOTIFICATION
-   Muncul di pojok kanan bawah, hilang otomatis.
 ══════════════════════════════════════════════════ */
-/**
- * Tampilkan notifikasi pop-up.
- * @param {string} title   — judul singkat
- * @param {string} msg     — pesan detail
- * @param {'info'|'success'|'warn'|'error'} type
- * @param {number} duration — durasi tampil dalam ms (default 3500)
- */
 function showToast(title, msg, type = 'info', duration = 3500) {
-  /* buat container jika belum ada */
   let container = document.getElementById('pkm-toast-container');
   if (!container) {
     container = document.createElement('div');
@@ -333,18 +291,10 @@ function showToast(title, msg, type = 'info', duration = 3500) {
 }
 
 /* ══════════════════════════════════════════════════
-   CONFIRM DIALOG — Pengganti window.confirm() bawaan
-   browser yang tampilannya tidak bisa dikustomisasi.
+   CONFIRM DIALOG — Pengganti window.confirm()
 ══════════════════════════════════════════════════ */
-/**
- * Tampilkan dialog konfirmasi custom.
- * @param {string} title
- * @param {string} body
- * @returns {Promise<boolean>} — true jika dikonfirmasi, false jika dibatalkan
- */
 function showConfirm(title, body) {
   return new Promise(resolve => {
-    /* buat overlay jika belum ada */
     let overlay = document.getElementById('pkm-confirm-overlay');
     if (!overlay) {
       overlay = document.createElement('div');
@@ -401,11 +351,9 @@ function showConfirm(title, body) {
       document.body.appendChild(overlay);
     }
 
-    /* isi konten */
     document.getElementById('pkm-confirm-title').textContent = title;
     document.getElementById('pkm-confirm-body').textContent  = body;
 
-    /* tampilkan */
     overlay.style.opacity      = '1';
     overlay.style.pointerEvents = 'all';
     const box = document.getElementById('pkm-confirm-box');
@@ -430,7 +378,6 @@ function showConfirm(title, body) {
 
 /**
  * Escape karakter HTML berbahaya untuk mencegah XSS.
- * WAJIB dipakai saat menampilkan data dari user/server ke innerHTML.
  * @param {*} s
  * @returns {string}
  */
@@ -444,10 +391,9 @@ function escHtml(s) {
 }
 
 /**
- * Format nomor antrian dengan leading zero.
- * Contoh: padNum(5) → "005", padNum(12) → "012"
+ * Format nomor antrian dengan leading zero (default 3 digit).
  * @param {number} n
- * @param {number} len — panjang total (default 3)
+ * @param {number} len
  * @returns {string}
  */
 function padNum(n, len = 3) {
@@ -455,7 +401,7 @@ function padNum(n, len = 3) {
 }
 
 /**
- * Ambil waktu sekarang dalam format HH:MM:SS.
+ * Waktu sekarang dalam format HH:MM:SS.
  * @returns {string}
  */
 function nowTime() {
@@ -466,9 +412,8 @@ function nowTime() {
 }
 
 /**
- * Format tanggal ke bahasa Indonesia.
- * Contoh: "Senin, 29 April 2026"
- * @param {Date|string|number} [d] — default: sekarang
+ * Format tanggal ke bahasa Indonesia (contoh: "Senin, 29 April 2026").
+ * @param {Date|string|number} [d]
  * @returns {string}
  */
 function formatDate(d) {
@@ -481,7 +426,7 @@ function formatDate(d) {
 }
 
 /* ══════════════════════════════════════════════════
-   GLOBAL CSS — Inject animasi untuk toast
+   GLOBAL CSS — Animasi toast & box‑sizing
 ══════════════════════════════════════════════════ */
 (function injectStyles() {
   const style = document.createElement('style');
