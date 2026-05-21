@@ -174,26 +174,61 @@ body {
 @keyframes blink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
 
 /* ── KEYBOARD VIRTUAL ── */
+/* ── KEYBOARD VIRTUAL ── */
 .virtual-keyboard {
-  background:var(--surface-2); border:1px solid var(--border); border-radius:12px;
-  padding:10px; display:none; grid-template-columns:repeat(6,1fr);
-  gap:6px; margin-bottom:12px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+  display: none;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
 }
-.virtual-keyboard.show { display:grid; }
+.virtual-keyboard.show { display: flex; }
+
+.kbd-row {
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+}
+
 .kbd-btn {
-  height:40px; border:1.5px solid var(--border-2); border-radius:10px;
-  background:var(--surface); color:var(--ink-1);
-  font-family:var(--font-body); font-size:13px; font-weight:600;
-  cursor:pointer; display:flex; align-items:center; justify-content:center;
-  transition:.15s; user-select:none;
+  height: 44px;
+  flex: 1;
+  max-width: 52px;
+  border: 0.5px solid var(--border-2);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink-1);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .1s, transform .08s;
+  user-select: none;
 }
-.kbd-btn:hover { background:var(--accent-bg); border-color:var(--accent); }
-.kbd-btn:active { transform:scale(.95); }
-.kbd-btn.special { background:var(--accent); color:#fff; border-color:var(--accent); font-size:12px; }
-.kbd-btn.special:hover { background:var(--accent-2); }
-.kbd-btn.delete { background:#fef2f2; color:#dc2626; border-color:#fecaca; }
-.kbd-btn.delete:hover { background:#fee2e2; }
-.kbd-space { grid-column:2/6; }
+.kbd-btn:hover  { background: var(--accent-bg); border-color: var(--accent); color: var(--accent-txt); }
+.kbd-btn:active { transform: scale(.93); background: rgba(0,87,216,.15); }
+
+.kbd-btn.kbd-space {
+  max-width: 220px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .5px;
+  color: var(--ink-3);
+}
+.kbd-btn.kbd-del {
+  max-width: 62px;
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #dc2626;
+}
+.kbd-btn.kbd-del:hover  { background: #fee2e2; }
+.kbd-btn.kbd-del:active { background: #fca5a5; }
 
 .field { display:flex; flex-direction:column; gap:4px; margin-bottom:12px; }
 .field label { font-size:12px; font-weight:600; color:var(--ink-2); }
@@ -457,44 +492,48 @@ body {
 
       <!-- KEYBOARD VIRTUAL -->
       <div class="virtual-keyboard" id="virtualKeyboard">
-        <!-- BARIS 1: Q W E R T Y U I O P -->
-        <button class="kbd-btn" onclick="typeKey('Q')">Q</button>
-        <button class="kbd-btn" onclick="typeKey('W')">W</button>
-        <button class="kbd-btn" onclick="typeKey('E')">E</button>
-        <button class="kbd-btn" onclick="typeKey('R')">R</button>
-        <button class="kbd-btn" onclick="typeKey('T')">T</button>
-        <button class="kbd-btn" onclick="typeKey('Y')">Y</button>
-        <button class="kbd-btn" onclick="typeKey('U')">U</button>
-        <button class="kbd-btn" onclick="typeKey('I')">I</button>
-        <button class="kbd-btn" onclick="typeKey('O')">O</button>
-        <button class="kbd-btn" onclick="typeKey('P')">P</button>
-        
-        <!-- BARIS 2: A S D F G H J K L -->
-        <button class="kbd-btn" onclick="typeKey('A')">A</button>
-        <button class="kbd-btn" onclick="typeKey('S')">S</button>
-        <button class="kbd-btn" onclick="typeKey('D')">D</button>
-        <button class="kbd-btn" onclick="typeKey('F')">F</button>
-        <button class="kbd-btn" onclick="typeKey('G')">G</button>
-        <button class="kbd-btn" onclick="typeKey('H')">H</button>
-        <button class="kbd-btn" onclick="typeKey('J')">J</button>
-        <button class="kbd-btn" onclick="typeKey('K')">K</button>
-        <button class="kbd-btn" onclick="typeKey('L')">L</button>
-
-        <!-- BARIS 3: Z X C V B N M -->
-        <button class="kbd-btn" onclick="typeKey('Z')">Z</button>
-        <button class="kbd-btn" onclick="typeKey('X')">X</button>
-        <button class="kbd-btn" onclick="typeKey('C')">C</button>
-        <button class="kbd-btn" onclick="typeKey('V')">V</button>
-        <button class="kbd-btn" onclick="typeKey('B')">B</button>
-        <button class="kbd-btn" onclick="typeKey('N')">N</button>
-        <button class="kbd-btn" onclick="typeKey('M')">M</button>
-
-        <!-- BARIS 4: SPASI & DELETE -->
-        <button class="kbd-btn kbd-space special" onclick="typeKey(' ')">Spasi</button>
-        <button class="kbd-btn special delete" onclick="deleteKey()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><path d="M18 9l-6 6M12 9l6 6"/></svg>
-        </button>
-      </div>
+  <div class="kbd-row">
+    <button class="kbd-btn" onclick="typeKey('Q')">Q</button>
+    <button class="kbd-btn" onclick="typeKey('W')">W</button>
+    <button class="kbd-btn" onclick="typeKey('E')">E</button>
+    <button class="kbd-btn" onclick="typeKey('R')">R</button>
+    <button class="kbd-btn" onclick="typeKey('T')">T</button>
+    <button class="kbd-btn" onclick="typeKey('Y')">Y</button>
+    <button class="kbd-btn" onclick="typeKey('U')">U</button>
+    <button class="kbd-btn" onclick="typeKey('I')">I</button>
+    <button class="kbd-btn" onclick="typeKey('O')">O</button>
+    <button class="kbd-btn" onclick="typeKey('P')">P</button>
+  </div>
+  <div class="kbd-row">
+    <button class="kbd-btn" onclick="typeKey('A')">A</button>
+    <button class="kbd-btn" onclick="typeKey('S')">S</button>
+    <button class="kbd-btn" onclick="typeKey('D')">D</button>
+    <button class="kbd-btn" onclick="typeKey('F')">F</button>
+    <button class="kbd-btn" onclick="typeKey('G')">G</button>
+    <button class="kbd-btn" onclick="typeKey('H')">H</button>
+    <button class="kbd-btn" onclick="typeKey('J')">J</button>
+    <button class="kbd-btn" onclick="typeKey('K')">K</button>
+    <button class="kbd-btn" onclick="typeKey('L')">L</button>
+  </div>
+  <div class="kbd-row">
+    <button class="kbd-btn" onclick="typeKey('Z')">Z</button>
+    <button class="kbd-btn" onclick="typeKey('X')">X</button>
+    <button class="kbd-btn" onclick="typeKey('C')">C</button>
+    <button class="kbd-btn" onclick="typeKey('V')">V</button>
+    <button class="kbd-btn" onclick="typeKey('B')">B</button>
+    <button class="kbd-btn" onclick="typeKey('N')">N</button>
+    <button class="kbd-btn" onclick="typeKey('M')">M</button>
+  </div>
+  <div class="kbd-row">
+    <button class="kbd-btn kbd-space" onclick="typeKey(' ')">SPASI</button>
+    <button class="kbd-btn kbd-del" onclick="deleteKey()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/>
+        <path d="M18 9l-6 6M12 9l6 6"/>
+      </svg>
+    </button>
+  </div>
+</div>
 
       <div class="btn-row">
         <button class="btn btn-back" onclick="goStep(1)">
