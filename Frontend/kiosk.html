@@ -169,20 +169,21 @@ body {
 }
 .input-display.active { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-glow); }
 .input-display-text { flex:1; }
-.input-display-cursor { width:2px; height:20px; background:var(--accent); margin-left:4px; animation:blink .7s infinite; }
+.input-display-cursor { width:2px; height:20px; background:var(--accent); margin-left:4px; animation:blink .7s infinite; display:none; }
+.input-display.active .input-display-cursor { display:block; }
 @keyframes blink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
 
 /* ── KEYBOARD VIRTUAL ── */
 .virtual-keyboard {
   background:var(--surface-2); border:1px solid var(--border); border-radius:12px;
-  padding:10px; display:grid; grid-template-columns:repeat(5,1fr);
+  padding:10px; display:none; grid-template-columns:repeat(6,1fr);
   gap:6px; margin-bottom:12px;
 }
-.virtual-keyboard.hidden { display:none; }
+.virtual-keyboard.show { display:grid; }
 .kbd-btn {
-  height:44px; border:1.5px solid var(--border-2); border-radius:10px;
+  height:40px; border:1.5px solid var(--border-2); border-radius:10px;
   background:var(--surface); color:var(--ink-1);
-  font-family:var(--font-body); font-size:14px; font-weight:600;
+  font-family:var(--font-body); font-size:13px; font-weight:600;
   cursor:pointer; display:flex; align-items:center; justify-content:center;
   transition:.15s; user-select:none;
 }
@@ -192,7 +193,7 @@ body {
 .kbd-btn.special:hover { background:var(--accent-2); }
 .kbd-btn.delete { background:#fef2f2; color:#dc2626; border-color:#fecaca; }
 .kbd-btn.delete:hover { background:#fee2e2; }
-.kbd-space { grid-column:2/5; }
+.kbd-space { grid-column:2/6; }
 
 .field { display:flex; flex-direction:column; gap:4px; margin-bottom:12px; }
 .field label { font-size:12px; font-weight:600; color:var(--ink-2); }
@@ -436,6 +437,7 @@ body {
     </div>
   </div>
 
+  <!--Screeen 2-->
   <div class="screen" id="screen2">
     <div class="screen-title">Data Pasien</div>
     <div class="screen-sub">Masukkan nama Anda (opsional)</div>
@@ -446,7 +448,7 @@ body {
       </div>
       <div class="field">
         <label>Nama Lengkap</label>
-        <div class="input-display active" id="inputDisplay">
+        <div class="input-display" id="inputDisplay" onclick="activateInput()">
           <div class="input-display-text" id="displayText"></div>
           <div class="input-display-cursor"></div>
         </div>
@@ -455,20 +457,31 @@ body {
 
       <!-- KEYBOARD VIRTUAL -->
       <div class="virtual-keyboard" id="virtualKeyboard">
-        <!-- ANGKA -->
-        <button class="kbd-btn" onclick="typeKey('1')">1</button>
-        <button class="kbd-btn" onclick="typeKey('2')">2</button>
-        <button class="kbd-btn" onclick="typeKey('3')">3</button>
-        <button class="kbd-btn" onclick="typeKey('4')">4</button>
-        <button class="kbd-btn" onclick="typeKey('5')">5</button>
+        <!-- BARIS 1: Q W E R T Y U I O P -->
+        <button class="kbd-btn" onclick="typeKey('q')">Q</button>
+        <button class="kbd-btn" onclick="typeKey('w')">W</button>
+        <button class="kbd-btn" onclick="typeKey('e')">E</button>
+        <button class="kbd-btn" onclick="typeKey('r')">R</button>
+        <button class="kbd-btn" onclick="typeKey('t')">T</button>
+        <button class="kbd-btn" onclick="typeKey('y')">Y</button>
         
-        <button class="kbd-btn" onclick="typeKey('6')">6</button>
-        <button class="kbd-btn" onclick="typeKey('7')">7</button>
-        <button class="kbd-btn" onclick="typeKey('8')">8</button>
-        <button class="kbd-btn" onclick="typeKey('9')">9</button>
-        <button class="kbd-btn" onclick="typeKey('0')">0</button>
+        <!-- BARIS 2: A S D F G H J K L -->
+        <button class="kbd-btn" onclick="typeKey('a')">A</button>
+        <button class="kbd-btn" onclick="typeKey('s')">S</button>
+        <button class="kbd-btn" onclick="typeKey('d')">D</button>
+        <button class="kbd-btn" onclick="typeKey('f')">F</button>
+        <button class="kbd-btn" onclick="typeKey('g')">G</button>
+        <button class="kbd-btn" onclick="typeKey('h')">H</button>
 
-        <!-- SPASI & TOMBOL KHUSUS -->
+        <!-- BARIS 3: Z X C V B N M -->
+        <button class="kbd-btn" onclick="typeKey('z')">Z</button>
+        <button class="kbd-btn" onclick="typeKey('x')">X</button>
+        <button class="kbd-btn" onclick="typeKey('c')">C</button>
+        <button class="kbd-btn" onclick="typeKey('v')">V</button>
+        <button class="kbd-btn" onclick="typeKey('b')">B</button>
+        <button class="kbd-btn" onclick="typeKey('n')">N</button>
+
+        <!-- BARIS 4: SPASI & DELETE -->
         <button class="kbd-btn kbd-space special" onclick="typeKey(' ')">Spasi</button>
         <button class="kbd-btn special delete" onclick="deleteKey()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><path d="M18 9l-6 6M12 9l6 6"/></svg>
@@ -608,6 +621,21 @@ let polyclinics  = [];
 let selectedPoli = null;
 let allQueues    = [];
 let inputValue   = ''; /* state untuk input nama */
+let isInputActive = false; /* state untuk input active */
+
+/* ── AKTIVASI INPUT ── */
+function activateInput() {
+  isInputActive = true;
+  document.getElementById('inputDisplay').classList.add('active');
+  document.getElementById('virtualKeyboard').classList.add('show');
+}
+
+/* ── NONAKTIFKAN INPUT ── */
+function deactivateInput() {
+  isInputActive = false;
+  document.getElementById('inputDisplay').classList.remove('active');
+  document.getElementById('virtualKeyboard').classList.remove('show');
+}
 
 /* ── KEYBOARD VIRTUAL ── */
 function typeKey(char) {
@@ -626,7 +654,7 @@ function updateDisplay() {
   const display = document.getElementById('displayText');
   display.textContent = inputValue || '';
 }
-
+  
 /* ── CLOCK ── */
 setInterval(() => {
   document.getElementById('clock').textContent = nowTime();
@@ -649,6 +677,7 @@ function goStep(n) {
     selectedPoli = null;
     inputValue = '';
     updateDisplay();
+    deactivateInput();
   }
 
   /* Screen 3: kunci scroll agar tombol selalu terlihat */
