@@ -157,16 +157,45 @@ body {
 .poli-selected-chip { display:inline-flex; align-items:center; gap:7px; padding:6px 12px; border-radius:9px; background:var(--accent-bg); border:1px solid rgba(0,87,216,.15); margin-bottom:1.25rem; }
 .poli-selected-chip-dot  { width:7px; height:7px; border-radius:50%; background:var(--accent); flex-shrink:0; }
 .poli-selected-chip-name { font-size:13px; font-weight:600; color:var(--accent-txt); }
-.field { display:flex; flex-direction:column; gap:4px; margin-bottom:12px; }
-.field label { font-size:12px; font-weight:600; color:var(--ink-2); }
-.field input {
+
+/* ── INPUT DISPLAY ── */
+.input-display {
   height:44px; padding:0 14px;
   border:1.5px solid var(--border-2); border-radius:11px;
+  background:var(--surface); outline:none;
+  display:flex; align-items:center;
   font-family:var(--font-body); font-size:14px; color:var(--ink-1);
-  background:var(--surface); outline:none; transition:.15s;
+  margin-bottom:12px; cursor:text;
 }
-.field input:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-glow); }
-.field input::placeholder { color:var(--ink-3); }
+.input-display.active { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-glow); }
+.input-display-text { flex:1; }
+.input-display-cursor { width:2px; height:20px; background:var(--accent); margin-left:4px; animation:blink .7s infinite; }
+@keyframes blink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+
+/* ── KEYBOARD VIRTUAL ── */
+.virtual-keyboard {
+  background:var(--surface-2); border:1px solid var(--border); border-radius:12px;
+  padding:10px; display:grid; grid-template-columns:repeat(5,1fr);
+  gap:6px; margin-bottom:12px;
+}
+.virtual-keyboard.hidden { display:none; }
+.kbd-btn {
+  height:44px; border:1.5px solid var(--border-2); border-radius:10px;
+  background:var(--surface); color:var(--ink-1);
+  font-family:var(--font-body); font-size:14px; font-weight:600;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  transition:.15s; user-select:none;
+}
+.kbd-btn:hover { background:var(--accent-bg); border-color:var(--accent); }
+.kbd-btn:active { transform:scale(.95); }
+.kbd-btn.special { background:var(--accent); color:#fff; border-color:var(--accent); font-size:12px; }
+.kbd-btn.special:hover { background:var(--accent-2); }
+.kbd-btn.delete { background:#fef2f2; color:#dc2626; border-color:#fecaca; }
+.kbd-btn.delete:hover { background:#fee2e2; }
+.kbd-space { grid-column:2/5; }
+
+.field { display:flex; flex-direction:column; gap:4px; margin-bottom:12px; }
+.field label { font-size:12px; font-weight:600; color:var(--ink-2); }
 .field-hint { font-size:11px; color:var(--ink-3); margin-top:2px; line-height:1.4; }
 .btn-row { display:flex; gap:8px; margin-top:6px; }
 .btn { height:44px; padding:0 20px; border-radius:11px; border:none; font-family:var(--font-body); font-size:14px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:7px; transition:.15s; }
@@ -407,7 +436,6 @@ body {
     </div>
   </div>
 
-  <!-- SCREEN 2 -->
   <div class="screen" id="screen2">
     <div class="screen-title">Data Pasien</div>
     <div class="screen-sub">Masukkan nama Anda (opsional)</div>
@@ -418,11 +446,35 @@ body {
       </div>
       <div class="field">
         <label>Nama Lengkap</label>
-        <input type="text" id="nameInput"
-               placeholder="Masukkan nama (opsional)"
-               maxlength="80" autocomplete="off">
-        <div class="field-hint">Kosongkan jika tidak ingin mencantumkan nama.</div>
+        <div class="input-display active" id="inputDisplay">
+          <div class="input-display-text" id="displayText"></div>
+          <div class="input-display-cursor"></div>
+        </div>
+        <div class="field-hint">Sentuh layar untuk memasukkan nama (opsional)</div>
       </div>
+
+      <!-- KEYBOARD VIRTUAL -->
+      <div class="virtual-keyboard" id="virtualKeyboard">
+        <!-- ANGKA -->
+        <button class="kbd-btn" onclick="typeKey('1')">1</button>
+        <button class="kbd-btn" onclick="typeKey('2')">2</button>
+        <button class="kbd-btn" onclick="typeKey('3')">3</button>
+        <button class="kbd-btn" onclick="typeKey('4')">4</button>
+        <button class="kbd-btn" onclick="typeKey('5')">5</button>
+        
+        <button class="kbd-btn" onclick="typeKey('6')">6</button>
+        <button class="kbd-btn" onclick="typeKey('7')">7</button>
+        <button class="kbd-btn" onclick="typeKey('8')">8</button>
+        <button class="kbd-btn" onclick="typeKey('9')">9</button>
+        <button class="kbd-btn" onclick="typeKey('0')">0</button>
+
+        <!-- SPASI & TOMBOL KHUSUS -->
+        <button class="kbd-btn kbd-space special" onclick="typeKey(' ')">Spasi</button>
+        <button class="kbd-btn special delete" onclick="deleteKey()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><path d="M18 9l-6 6M12 9l6 6"/></svg>
+        </button>
+      </div>
+
       <div class="btn-row">
         <button class="btn btn-back" onclick="goStep(1)">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
@@ -555,6 +607,25 @@ body {
 let polyclinics  = [];
 let selectedPoli = null;
 let allQueues    = [];
+let inputValue   = ''; /* state untuk input nama */
+
+/* ── KEYBOARD VIRTUAL ── */
+function typeKey(char) {
+  if (inputValue.length < 80) {
+    inputValue += char;
+    updateDisplay();
+  }
+}
+
+function deleteKey() {
+  inputValue = inputValue.slice(0, -1);
+  updateDisplay();
+}
+
+function updateDisplay() {
+  const display = document.getElementById('displayText');
+  display.textContent = inputValue || '';
+}
 
 /* ── CLOCK ── */
 setInterval(() => {
@@ -576,7 +647,8 @@ function goStep(n) {
 
   if (n === 1) {
     selectedPoli = null;
-    document.getElementById('nameInput').value = '';
+    inputValue = '';
+    updateDisplay();
   }
 
   /* Screen 3: kunci scroll agar tombol selalu terlihat */
@@ -652,7 +724,7 @@ function selectPoli(id) {
 async function submitQueue() {
   if (!selectedPoli) return;
   const btn  = document.getElementById('btnSubmit');
-  const name = document.getElementById('nameInput').value.trim();
+  const name = inputValue.trim();
   btn.disabled = true;
   btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin .8s linear infinite"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Memproses...`;
   try {
