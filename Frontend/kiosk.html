@@ -681,7 +681,7 @@ function renderTicket(item) {
 
   document.getElementById('ticketNum').textContent     = padNum(item.queueNumber);
   document.getElementById('ticketPoli').textContent    = item.poliName;
-  document.getElementById('ticketName').textContent    = item.name || 'Pasien Anonim';
+  document.getElementById('ticketName').textContent    = item.name || 'Pasien';
   document.getElementById('ticketDate').textContent    = new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'2-digit',year:'numeric'});
   document.getElementById('ticketTime').textContent    = item.timestamp || nowTime();
   document.getElementById('ticketAhead').textContent   = aheadTxt;
@@ -690,7 +690,7 @@ function renderTicket(item) {
 
   document.getElementById('pNum').textContent     = padNum(item.queueNumber);
   document.getElementById('pPoli').textContent    = item.poliName;
-  document.getElementById('pName').textContent    = item.name || 'Pasien Anonim';
+  document.getElementById('pName').textContent    = item.name || 'Pasien';
   document.getElementById('pDate').textContent    = new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'2-digit',year:'numeric'});
   document.getElementById('pTime').textContent    = item.timestamp || nowTime();
   document.getElementById('pAhead').textContent   = aheadTxt;
