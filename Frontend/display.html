@@ -510,7 +510,7 @@ function speakQueue(forceCalled) {
   /* nomor dibaca digit per digit: "005" → "nol nol lima" */
   const digitWords = ['nol','satu','dua','tiga','empat','lima','enam','tujuh','delapan','sembilan'];
   const numSpoken  = padNum(called.queueNumber).split('').map(d => digitWords[+d] || d).join(' ');
-  const text       = `Nomor antrian ${numSpoken}, ${called.poliName}, silakan menuju loket`;
+  const text       = `Nomor antrian ${numSpoken}, ${called.poliName}, silakan menuju loket pendaftaran`;
 
   const utter   = new SpeechSynthesisUtterance(text);
   utter.lang    = 'id-ID';
