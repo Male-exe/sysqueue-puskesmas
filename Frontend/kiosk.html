@@ -786,11 +786,6 @@ function doPrint() {
   }, 300);
 }
 
-/* ── ENTER KEY ── */
-document.getElementById('nameInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') submitQueue();
-});
-
 /* ── AUTO RESET ── */
 let idleTimer;
 function resetIdleTimer() {
