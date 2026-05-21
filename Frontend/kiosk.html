@@ -258,12 +258,10 @@ body {
     margin: 0;
   }
 
-  /* Sembunyikan semua elemen kecuali printArea */
   body > *:not(#printArea) {
     display: none !important;
   }
 
-  /* Perbaiki posisi & lebar printArea */
   #printArea {
     position: static !important;
     left: auto !important;
@@ -275,7 +273,7 @@ body {
     display: block !important;
   }
 
-  /* ── Header cetak (kompak) ── */
+  /* ── Header cetak ── */
   .p-head {
     background: #fff !important;
     -webkit-print-color-adjust: exact;
@@ -285,56 +283,47 @@ body {
     text-align: center;
     border: 1px solid #000;
   }
+
   .p-head-label {
-    font-size: 7pt; letter-spacing: 1.5px;
-    text-transform: uppercase; opacity: .75;
-    margin-bottom: 1.5mm; display: block;
+    font-size: 7pt;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    opacity: 1;
+    margin-bottom: 1.5mm;
+    display: block;
+    font-weight: 800;
     color: #000;
   }
+
   .p-num {
-    font-size: 42pt; font-weight: 700;
-    line-height: 1; letter-spacing: 2px;
-    display: block; font-family: 'DM Mono', monospace;
+    font-size: 42pt;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: 2px;
+    display: block;
+    font-family: 'DM Mono', monospace;
     color: #000;
   }
+
   .p-poli-chip {
-    display: inline-block; margin-top: 1.5mm;
+    display: inline-block;
+    margin-top: 1.5mm;
     padding: 1.5mm 4mm;
     border: 1px solid #000;
-    border-radius: 20px; font-size: 8.5pt; font-weight: 700;
+    border-radius: 20px;
+    font-size: 8.5pt;
+    font-weight: 900;
     color: #000;
   }
 
   /* ── Body cetak ── */
-  .p-body {
-    padding: 2mm 4mm;
-  }
-  .p-head-label {
-    font-size: 7pt; letter-spacing: 1.5px;
-    text-transform: uppercase; opacity: .75;
-    margin-bottom: 1.5mm; display: block; font-weight: 800;
-  }
-  .p-num {
-    font-size: 42pt; font-weight: 900;
-    line-height: 1; letter-spacing: 2px;
-    display: block; font-family: 'DM Mono', monospace;
-  }
-  .p-poli-chip {
-    display: inline-block; margin-top: 1.5mm;
-    padding: 1.5mm 4mm;
-    border: 1px solid rgba(255,255,255,.5);
-    border-radius: 20px; font-size: 8.5pt; font-weight: 900;
-  }
-
-  /* ── Body cetak ── */
-  .p-body { padding: 4mm 5mm; }
-  .p-patient { font-size: 11pt; font-weight: 900; margin-bottom: .5mm; }
-  .p-sub     { font-size: 7.5pt; color: #000; margin-bottom: 3mm; font-weight: 600; }
-  .p-divider { border: none; border-top: 1px dashed #bbb; margin: 3mm 0; }
-
-  .p-row       { display: flex; justify-content: space-between; font-size: 8pt; margin-bottom: 1.5mm; }
+  .p-body     { padding: 4mm 5mm; }
+  .p-patient  { font-size: 11pt; font-weight: 900; margin-bottom: .5mm; }
+  .p-sub      { font-size: 7.5pt; color: #000; margin-bottom: 3mm; font-weight: 600; }
+  .p-divider  { border: none; border-top: 1px dashed #bbb; margin: 3mm 0; }
+  .p-row      { display: flex; justify-content: space-between; font-size: 8pt; margin-bottom: 1.5mm; }
   .p-row-label { color: #000; font-weight: 700; }
-  .p-row-val   { font-weight: 800; font-family: 'DM Mono', monospace; }
+  .p-row-val  { font-weight: 800; font-family: 'DM Mono', monospace; }
 
   /* ── Estimasi tunggu ── */
   .p-wait-box   { border: 1px solid #bbb; border-radius: 4px; padding: 2.5mm 4mm; margin-top: 3mm; }
