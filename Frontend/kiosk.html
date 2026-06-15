@@ -114,6 +114,8 @@ body {
   margin: 0 auto;
   width: 100%;
   padding: 1.25rem 1.5rem;
+  /* beri ruang kosong di bawah agar konten tidak tertutup logo kampus */
+  padding-bottom: 6rem;
 }
 
 /* ── STEP BAR ── */
@@ -138,18 +140,21 @@ body {
 /* ── SCREEN 1: POLI ── */
 .screen-title { font-family:var(--font-display); font-size:20px; font-weight:700; color:var(--ink-1); margin-bottom:3px; letter-spacing:-.3px; }
 .screen-sub   { font-size:13px; color:var(--ink-2); margin-bottom:1.25rem; }
-.poli-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(155px,1fr)); gap:10px; }
+
+/* Kartu poli diperbesar: kolom lebih lebar & lebih tinggi */
+.poli-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:16px; }
 .poli-card {
-  background:var(--surface); border:2px solid var(--border); border-radius:14px;
-  padding:1.1rem .875rem; text-align:center; cursor:pointer;
+  background:var(--surface); border:2px solid var(--border); border-radius:18px;
+  padding:2rem 1.25rem; text-align:center; cursor:pointer;
   transition:.2s; user-select:none; box-shadow:var(--shadow-sm);
 }
 .poli-card:hover  { border-color:var(--accent); background:var(--accent-bg); transform:translateY(-2px); box-shadow:var(--shadow-md); }
 .poli-card:active { transform:translateY(0); box-shadow:var(--shadow-sm); }
-.poli-icon-wrap { width:46px; height:46px; border-radius:12px; background:var(--accent-bg); border:1px solid rgba(0,87,216,.1); display:flex; align-items:center; justify-content:center; margin:0 auto 8px; transition:.2s; }
+.poli-icon-wrap { width:72px; height:72px; border-radius:16px; background:var(--accent-bg); border:1px solid rgba(0,87,216,.1); display:flex; align-items:center; justify-content:center; margin:0 auto 14px; transition:.2s; }
 .poli-card:hover .poli-icon-wrap { background:rgba(0,87,216,.15); }
-.poli-card-name  { font-size:13px; font-weight:600; color:var(--ink-1); line-height:1.3; margin-bottom:4px; }
-.poli-card-count { display:inline-flex; align-items:center; gap:3px; font-size:10px; font-weight:600; color:var(--warn-txt); background:var(--warn-bg); padding:2px 7px; border-radius:20px; }
+.poli-icon-wrap span { font-size:38px !important; }
+.poli-card-name  { font-size:17px; font-weight:600; color:var(--ink-1); line-height:1.3; margin-bottom:8px; }
+.poli-card-count { display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:600; color:var(--warn-txt); background:var(--warn-bg); padding:4px 10px; border-radius:20px; }
 .poli-card-count.zero { color:var(--ink-3); background:var(--surface-2); }
 
 /* ── SCREEN 2: FORM ── */
@@ -305,6 +310,44 @@ body {
 .btn-reset-soft:hover { background:var(--surface-2); color:var(--ink-1); }
 
 /* ══════════════════════════════════════════════════
+   LOGO KAMPUS — FIXED DI KIRI BAWAH (BACKGROUND)
+   Tetap tampil di semua screen, tidak ikut scroll
+══════════════════════════════════════════════════ */
+.campus-badge {
+  position: fixed;
+  left: 1.25rem;
+  bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 1;          /* di belakang konten interaktif */
+  opacity: .55;        /* menempel di background, tidak mengganggu */
+  pointer-events: none;
+  user-select: none;
+}
+.campus-badge img {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,.08));
+}
+.campus-badge-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+.campus-badge-name {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-2);
+}
+.campus-badge-sub {
+  font-size: 10px;
+  color: var(--ink-3);
+}
+
+/* ══════════════════════════════════════════════════
    PRINT STYLES (disempurnakan)
    Lebar cetak aktif 72.1 mm agar sesuai dengan
    area cetak kertas 80 mm (margin fisik ~4 mm)
@@ -405,7 +448,10 @@ body {
   .poli-grid        { grid-template-columns: repeat(2,1fr); }
   .ticket-num       { font-size: 44px; }
   .ticket-actions   { flex-direction: column; }
-  .main             { padding: 1rem; }
+  .main             { padding: 1rem; padding-bottom: 5.5rem; }
+  .campus-badge img { width: 34px; height: 34px; }
+  .campus-badge-name{ font-size: 11px; }
+  .campus-badge-sub { font-size: 9px; }
 }
 @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
 </style>
@@ -619,6 +665,17 @@ body {
 
 </main>
 </div><!-- .scroll-area -->
+
+<!-- ══════════════════════════════════════════════════
+     LOGO KAMPUS — pojok kiri bawah, fixed, semua screen
+══════════════════════════════════════════════════ -->
+<div class="campus-badge">
+  <img src="/assets/logo unipol.png" alt="Logo Kampus" onerror="this.style.display='none'">
+  <div class="campus-badge-text">
+    <span class="campus-badge-name">Magang Berdampak Unipol 2026</span>
+    <span class="campus-badge-sub">Proker</span>
+  </div>
+</div>
 
 <!-- ══════════════════════════════════════════════════
      AREA CETAK (tersembunyi, aktif saat print)
